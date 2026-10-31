@@ -9,6 +9,7 @@ mkdir -p "$evidence"
 # Freshness: only this dedicated connected-debug output is removed.
 rm -rf -- "$results"
 export AS91_STARTED_AT="$(date +%s)" AS91_PHASE=preflight AS91_GRADLE_STATUS=NOT_RUN AS91_PARSER_STATUS=NOT_RUN
+export AS91_PREFLIGHT_CHECK=NOT_ENTERED
 export AS91_RESULTS="$results" AS91_EVIDENCE="$evidence"
 export AS91_BOOT_SECONDS=0 AS91_INSTALL_SECONDS=0 AS91_SUITE_SECONDS=0
 export AS91_DISK_BEFORE="$(df --output=avail -B1 "$root" | tail -1 | tr -d ' ')"
@@ -55,6 +56,7 @@ try:event=json.loads(pathlib.Path(os.environ.get('GITHUB_EVENT_PATH','/nonexiste
 except (OSError,ValueError):pass
 pr=event.get('pull_request',{})
 receipt={'phase':os.environ['AS91_PHASE'],'exit_status':int(os.environ['AS91_EXIT_STATUS']),
+ 'preflight_check':os.environ['AS91_PREFLIGHT_CHECK'],
  'gradle_exit_status':os.environ['AS91_GRADLE_STATUS'],'accounting_exit_status':os.environ['AS91_PARSER_STATUS'],
  'source_head':command(['git','rev-parse','HEAD']),'source_dirty':bool(command(['git','status','--porcelain','--untracked-files=no'])),'source_tree':command(['git','rev-parse','HEAD^{tree}']),
  'pr_head':pr.get('head',{}).get('sha'),'pr_base':pr.get('base',{}).get('sha'),
@@ -128,9 +130,14 @@ finish() {
 trap finish EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+# Last entered check only; the phase and exit status determine whether preflight stopped.
+export AS91_PREFLIGHT_CHECK=ENV_REQUIRED
 : "${RUNNER_TEMP:?}" "${ANDROID_HOME:?}"
+export AS91_PREFLIGHT_CHECK=SDK_ISOLATION
 [[ "$ANDROID_HOME" == "$RUNNER_TEMP/assistant-toolchains/android" ]]
+export AS91_PREFLIGHT_CHECK=ACCOUNTING_SELF_TEST
 python3 -m unittest tool/test_check_instrumentation_results.py
+export AS91_PREFLIGHT_CHECK=APK_CONTENTS
 python3 - <<'APK'
 import zipfile
 with zipfile.ZipFile('build/app/outputs/apk/debug/app-debug.apk') as apk:
@@ -139,19 +146,29 @@ with zipfile.ZipFile('build/app/outputs/apk/debug/app-debug.apk') as apk:
 with zipfile.ZipFile('build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk') as apk:
  assert 'AndroidManifest.xml' in apk.namelist(), 'TEST_APK_MISSING'
 APK
+export AS91_PREFLIGHT_CHECK=DISK_SPACE
 (( AS91_DISK_BEFORE >= 6 * 1024 * 1024 * 1024 ))
+export AS91_PREFLIGHT_CHECK=KVM_PRESENT
 [[ -e /dev/kvm ]]
+export AS91_PREFLIGHT_CHECK=KVM_INITIAL_ACCESS
 if [[ ! -r /dev/kvm || ! -w /dev/kvm ]]; then
  # GitHub's documented rule, only on this ephemeral hosted runner.
+ export AS91_PREFLIGHT_CHECK=KVM_PERMISSION_POLICY
  [[ "${GITHUB_ACTIONS:-}" == true && "${RUNNER_ENVIRONMENT:-}" == github-hosted ]]
+ export AS91_PREFLIGHT_CHECK=KVM_RULE_WRITE
  echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+ export AS91_PREFLIGHT_CHECK=KVM_RULE_RELOAD
  sudo udevadm control --reload-rules
+ export AS91_PREFLIGHT_CHECK=KVM_RULE_TRIGGER
  sudo udevadm trigger --name-match=kvm
 fi
+export AS91_PREFLIGHT_CHECK=KVM_ACCESS
 [[ -r /dev/kvm && -w /dev/kvm ]]
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/cmdline-tools/pinned/bin:$PATH"
 # Refuse even an offline/unavailable physical transport; the ADB server is job-local.
+export AS91_PREFLIGHT_CHECK=ADB_START
 adb start-server >/dev/null
+export AS91_PREFLIGHT_CHECK=ADB_EMPTY
 [[ -z "$(adb devices | tail -n +2 | tr -d '[:space:]')" ]]
 export AS91_PHASE=runtime_install
 start=$(date +%s)
