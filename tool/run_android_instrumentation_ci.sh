@@ -170,15 +170,9 @@ adb -s "$serial" shell svc wifi disable
 adb -s "$serial" shell svc data disable
 adb -s "$serial" shell settings put system screen_off_timeout 900000
 adb -s "$serial" shell svc power stayon true
-# Setup is never counted as a native prompt completion. Do not echo fixture input.
+# Provisioning only; the observed androidTest system UI owns any initial OS unlock.
+# Initial setup is never counted as completion of an app/native credential prompt.
 adb -s "$serial" shell locksettings set-pin 864209 >/dev/null
-adb -s "$serial" shell input keyevent KEYCODE_WAKEUP
-adb -s "$serial" shell wm dismiss-keyguard
-# On an initially locked empty image, unlock only this known synthetic system lock.
-if adb -s "$serial" shell dumpsys trust | grep -q 'deviceLocked=true'; then
- adb -s "$serial" shell input text 864209
- adb -s "$serial" shell input keyevent KEYCODE_ENTER
-fi
 export AS91_PHASE=native_suite
 start=$(date +%s)
 set +e

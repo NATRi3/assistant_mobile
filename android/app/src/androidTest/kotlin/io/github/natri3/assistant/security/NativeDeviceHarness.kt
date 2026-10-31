@@ -50,10 +50,33 @@ class NativeDeviceHarness : Closeable {
             }
         }
         owned = true
-        check(keys.secure() && !context.getSystemService(KeyguardManager::class.java).isKeyguardLocked) { "SECURE_UNLOCKED_DEVICE_REQUIRED" }
+        prepareInitialDevice()
         scenario = ActivityScenario.launch(MainActivity::class.java)
         acquireBridge()
         assertLocked()
+    }
+
+    private fun prepareInitialDevice() {
+        val keyguard = context.getSystemService(KeyguardManager::class.java)
+        check(keys.secure()) { "INITIAL_SCREEN_LOCK_REQUIRED" }
+        if (keyguard.isKeyguardLocked) {
+            // OS setup only: this neither requests a bridge unlock nor opens its gate.
+            press(KeyEvent.KEYCODE_WAKEUP)
+            // Request the system bouncer, then require its recognized PIN UI before input.
+            // Close the output immediately; no shell output, hierarchy or field text is logged.
+            instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard").close()
+            try {
+                enterSyntheticCredential()
+            } catch (_: Exception) {
+                error("INITIAL_OS_CREDENTIAL_UI_UNAVAILABLE")
+            }
+            val deadline = SystemClock.elapsedRealtime() + 10000
+            while (keyguard.isKeyguardLocked && SystemClock.elapsedRealtime() < deadline) {
+                SystemClock.sleep(100)
+            }
+        }
+        check(keys.secure()) { "INITIAL_SCREEN_LOCK_REQUIRED" }
+        check(!keyguard.isKeyguardLocked) { "INITIAL_DEVICE_STILL_LOCKED" }
     }
 
     private fun acquireBridge() {
