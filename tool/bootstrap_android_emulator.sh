@@ -30,6 +30,9 @@ case "${1:-}" in
   install_pin emulator "$ANDROID_HOME"
   install_pin system_image "$ANDROID_HOME/system-images/android-36/default"
   grep -Eq '^Pkg.Revision *= *37\.2\.13$' "$ANDROID_HOME/emulator/source.properties"
+  # The command-line SDK's legacy loader does not register emulator from
+  # source.properties alone. Register only after the pinned bytes/revision pass.
+  cp tool/android-emulator-package.xml "$ANDROID_HOME/emulator/package.xml"
   grep -Eq '^Pkg.Revision *= *2$' "$ANDROID_HOME/system-images/android-36/default/x86_64/source.properties"
   ;;
  *) exit 2 ;;

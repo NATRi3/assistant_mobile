@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Local SDK registration for the independently verified, pinned emulator archive. -->
+<sdk:repository xmlns:sdk="http://schemas.android.com/repository/android/common/02"
+    xmlns:generic="http://schemas.android.com/repository/android/generic/02"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <localPackage path="emulator" obsolete="false">
+    <type-details xsi:type="generic:genericDetailsType" />
+    <revision><major>37</major><minor>2</minor><micro>13</micro></revision>
+    <display-name>Android Emulator</display-name>
+  </localPackage>
+</sdk:repository>
