@@ -10,6 +10,12 @@ import 'core/session/logout_coordinator.dart';
 import 'features/pairing/pairing_controller.dart';
 import 'features/pairing/pairing_screen.dart';
 import 'features/device/device_screen.dart';
+import 'core/platform/domain_platform.dart';
+import 'core/cache/domain_cache.dart';
+import 'core/recovery/action_recovery.dart';
+import 'features/today/today_repository.dart';
+import 'features/today/today_controller.dart';
+import 'features/today/today_screen.dart';
 import 'theme/assistant_theme.dart';
 import 'theme/token_loader.dart';
 
@@ -39,6 +45,8 @@ class _AssistantAppState extends State<AssistantApp> {
   late final SessionMemory memory;
   late final ApiClient api;
   late final PairingController pairing;
+  TodayController? today;
+  ApiTodayRepository? todayRepository;
   String? warning;
   // Public recovery metadata only; session credentials still clear on lock.
   String? ownedDeviceId;
@@ -58,12 +66,28 @@ class _AssistantAppState extends State<AssistantApp> {
       }
     });
     api = ApiClient(widget.config, widget.platform, widget.transport, memory);
+    if (widget.platform case final DomainPlatform domain) {
+      final cache = DomainCache(widget.platform, domain, memory);
+      todayRepository = ApiTodayRepository(api, cache, domain);
+      today = TodayController(
+        todayRepository!,
+        cache,
+        memory,
+        recovery: ActionRecovery(
+          cache,
+          memory,
+          widget.config.apiOrigin?.toString() ?? '',
+        ),
+      );
+    }
+    memory.addListener(_changed);
     pairing = PairingController(
       widget.config,
       api,
       widget.platform,
       memory,
       SessionStore(widget.platform, memory),
+      verifyDevice: todayRepository?.verifyDevice,
     );
     pairing.addListener(_changed);
   }
@@ -120,7 +144,16 @@ class _AssistantAppState extends State<AssistantApp> {
     theme: assistantTheme(widget.tokens, Brightness.light),
     darkTheme: assistantTheme(widget.tokens, Brightness.dark),
     home: pairing.phase == PairingPhase.paired && memory.current != null
-        ? DeviceScreen(deviceId: memory.current!.deviceId, onLogout: logout)
+        ? today == null
+              ? DeviceScreen(
+                  deviceId: memory.current!.deviceId,
+                  onLogout: logout,
+                )
+              : TodayShell(
+                  controller: today!,
+                  deviceId: memory.current!.deviceId,
+                  onLogout: logout,
+                )
         : PairingScreen(
             controller: pairing,
             logoutWarning: warning,
@@ -131,6 +164,9 @@ class _AssistantAppState extends State<AssistantApp> {
   void dispose() {
     pairing.removeListener(_changed);
     pairing.dispose();
+    today?.dispose();
+    todayRepository?.dispose();
+    memory.removeListener(_changed);
     memory.dispose();
     api.cancelPrivateRequests();
     super.dispose();

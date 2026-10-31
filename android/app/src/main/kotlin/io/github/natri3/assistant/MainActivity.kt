@@ -20,11 +20,11 @@ class MainActivity:FlutterFragmentActivity() {
  private var credentialPending=false;private var credentialResult=false;private var challengePause=false
  private val handler=Handler(Looper.getMainLooper());private var prompt:BiometricPrompt?=null
  private val timeout=Runnable{cancelChallenge()}
- private val lockReceiver=object:BroadcastReceiver(){override fun onReceive(c:Context?,i:Intent?){cancelChallenge();if(::bridge.isInitialized)bridge.lock()}}
+ private val lockReceiver=object:BroadcastReceiver(){override fun onReceive(c:Context?,i:Intent?){cancelChallenge();if(::bridge.isInitialized){if(i?.action==Intent.ACTION_TIME_CHANGED)bridge.clockChanged()else bridge.lock()}}}
  override fun onCreate(savedInstanceState:Bundle?){
  window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
  super.onCreate(savedInstanceState)
- val filter=IntentFilter(Intent.ACTION_SCREEN_OFF)
+ val filter=IntentFilter(Intent.ACTION_SCREEN_OFF).apply{addAction(Intent.ACTION_TIME_CHANGED)}
  if(Build.VERSION.SDK_INT>=33)registerReceiver(lockReceiver,filter,Context.RECEIVER_NOT_EXPORTED)else registerReceiver(lockReceiver,filter)
  }
  override fun configureFlutterEngine(engine:FlutterEngine){super.configureFlutterEngine(engine)

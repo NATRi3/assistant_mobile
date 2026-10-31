@@ -32,6 +32,7 @@ class PairingController extends ChangeNotifier {
   final SessionMemory memory;
   final SessionStore store;
   final DateTime Function() now;
+  final Future<Device> Function()? verifyDevice;
   PairingPhase phase;
   PairingCreated? challenge;
   String? message;
@@ -49,6 +50,7 @@ class PairingController extends ChangeNotifier {
     this.memory,
     this.store, {
     DateTime Function()? now,
+    this.verifyDevice,
   }) : now = now ?? DateTime.now,
        phase = config.configured
            ? PairingPhase.locked
@@ -118,9 +120,7 @@ class PairingController extends ChangeNotifier {
           ).resumeOrRefresh();
         }
         _check(run, epoch);
-        final device = Device.fromJson(
-          await api.call(ApiOperation.getSelfDevice),
-        );
+        final device = await _verifyOwnDevice();
         _check(run, epoch);
         if (device.deviceId != memory.current!.deviceId ||
             device.deviceVersion != memory.current!.deviceVersion) {
@@ -275,6 +275,8 @@ class PairingController extends ChangeNotifier {
       _check(run, epoch);
       await store.install(dto, epoch);
       _check(run, epoch);
+      await _verifyOwnDevice();
+      _check(run, epoch);
       _state(PairingPhase.paired);
     } on ApiError catch (e) {
       if (run == _run) {
@@ -313,6 +315,17 @@ class PairingController extends ChangeNotifier {
     }
   }
 
+  Future<Device> _verifyOwnDevice() async {
+    final device = verifyDevice != null
+        ? await verifyDevice!()
+        : Device.fromJson(await api.call(ApiOperation.getSelfDevice));
+    if (device.deviceId != memory.current?.deviceId ||
+        device.deviceVersion != memory.current?.deviceVersion) {
+      throw const FormatException('Foreign device');
+    }
+    return device;
+  }
+
   void _error(ApiError e) {
     if (e.status == 401) {
       memory.lock(NativeLockEvent(memory.nativeEpoch));
@@ -328,7 +341,7 @@ class PairingController extends ChangeNotifier {
     } else {
       _state(
         PairingPhase.error,
-        'Сервер временно недоступен. Повторите позже.',
+        'Для открытия сохранённых данных нужно проверить подключение телефона к серверу. Сейчас проверка недоступна.',
       );
     }
   }

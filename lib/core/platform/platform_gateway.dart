@@ -12,6 +12,12 @@ abstract interface class PlatformGateway {
   Stream<NativeLockEvent> get lockEvents;
 }
 
+// Native policy denial is shared across all current controllers and persisted.
+abstract interface class DomainAccessAuthority {
+  Stream<int> get domainDenials;
+  Future<void> denyDomainAccess(int nativeEpoch);
+}
+
 enum LocalClearPhase { cover, destroy }
 
 enum CacheSlot { session, domain }

@@ -30,6 +30,9 @@ void main() {
             utf8.encode(jsonEncode(fixtureSession().toJson())),
           );
         }
+        if (request.uri.path.endsWith('/devices/self')) {
+          return ApiResponse(200, {}, utf8.encode(jsonEncode(fixtureDevice())));
+        }
         if (request.method == 'GET') {
           return ApiResponse(
             200,

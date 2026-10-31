@@ -12,3 +12,13 @@ SessionDto fixtureSession() => SessionDto.fromJson({
   'refresh_expires_at': '2026-11-30T12:00:00Z',
   'server_time': '2026-10-31T12:00:00Z',
 });
+Map<String, Object?> fixtureDevice() => {
+  'device_id': deviceId,
+  'device_label': 'Synthetic Android',
+  'device_version': 1,
+  'state': 'active',
+  'fingerprint': 'A' * 43,
+  'created_at': '2026-10-31T12:00:00Z',
+  'registration_version': 0,
+  'context_epoch': 1,
+};

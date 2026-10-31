@@ -50,6 +50,8 @@ void main() {
               'expires_at': '2026-10-31T12:05:00Z',
               'poll_after_seconds': 3,
             };
+          case ApiOperation.getSelfDevice:
+            return fixtureDevice();
           case ApiOperation.completePairing:
             if (completes++ == 0) throw const ApiError(0, 'TIMEOUT');
             return fixtureSession().toJson();
@@ -168,6 +170,7 @@ void main() {
         if (op == ApiOperation.completePairing) {
           return fixtureSession().toJson();
         }
+        if (op == ApiOperation.getSelfDevice) return fixtureDevice();
         throw StateError('unexpected');
       };
       final c = PairingController(
@@ -297,4 +300,66 @@ void main() {
       c.dispose();
     },
   );
+  test('fresh pairing cannot admit Today before actual own GETself; cold offline never becomes paired', () async {
+    var now = DateTime.utc(2026, 10, 31, 12);
+    final p = FakePlatform(), a = FakeApi(), m = SessionMemory();
+    final self = Completer<Map<String, Object?>>();
+    a.handler = (op, key, body) async {
+      if (op == ApiOperation.createPairing) {
+        return {
+          'pairing_id': deviceId,
+          'code': 'ABCDEFG2',
+          'fingerprint': 'A' * 43,
+          'expires_at': '2026-10-31T12:05:00Z',
+          'poll_after_seconds': 3,
+        };
+      }
+      if (op == ApiOperation.getPairing) {
+        return {
+          'pairing_id': deviceId,
+          'status': 'approved',
+          'expires_at': '2026-10-31T12:05:00Z',
+          'poll_after_seconds': 3,
+        };
+      }
+      if (op == ApiOperation.completePairing) return fixtureSession().toJson();
+      if (op == ApiOperation.getSelfDevice) return self.future;
+      throw StateError('Unexpected');
+    };
+    final c = PairingController(
+      AppConfig.parse('https://synthetic.invalid'),
+      a,
+      p,
+      m,
+      SessionStore(p, m),
+      now: () => now,
+    );
+    await c.begin();
+    now = now.add(const Duration(seconds: 3));
+    await c.poll();
+    final completion = c.complete();
+    await Future<void>.delayed(Duration.zero);
+    expect(m.current, isNotNull);
+    expect(c.phase, isNot(PairingPhase.paired));
+    expect(a.calls.last.op, ApiOperation.getSelfDevice);
+    self.completeError(const ApiError(0, 'TRANSPORT_UNAVAILABLE'));
+    await completion;
+    expect(c.phase, isNot(PairingPhase.paired));
+    c.dispose();
+    final restored = PairingController(
+      AppConfig.parse('https://synthetic.invalid'),
+      a,
+      p,
+      m,
+      SessionStore(p, m),
+      now: () => now,
+    );
+    a.handler = (op, key, body) async =>
+        throw const ApiError(0, 'TRANSPORT_UNAVAILABLE');
+    p.epoch = 9;
+    await restored.begin();
+    expect(restored.phase, isNot(PairingPhase.paired));
+    expect(restored.message, contains('нужно проверить подключение'));
+    restored.dispose();
+  });
 }
