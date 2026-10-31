@@ -13,7 +13,15 @@ class ApiRequest {
   final Uri uri;
   final Map<String, String> headers;
   final List<int>? body;
-  const ApiRequest(this.method, this.uri, this.headers, this.body);
+  // Synchronous, local admission only; never serialized into the HTTP request.
+  final void Function()? checkAdmission;
+  const ApiRequest(
+    this.method,
+    this.uri,
+    this.headers,
+    this.body, {
+    this.checkAdmission,
+  });
   @override
   String toString() => 'ApiRequest([redacted])';
 }
@@ -31,11 +39,15 @@ class HttpTransport implements ApiTransport {
   final Set<HttpClient> _active = {};
   @override
   Future<ApiResponse> send(ApiRequest request) async {
+    request.checkAdmission?.call();
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
     _active.add(client);
     try {
       return await (() async {
         final req = await client.openUrl(request.method, request.uri);
+        // Connecting yields. Revalidate before admitting any headers/body, with
+        // no await from this check through close's synchronous send initiation.
+        request.checkAdmission?.call();
         req.followRedirects = false;
         req.maxRedirects = 0;
         request.headers.forEach(req.headers.set);

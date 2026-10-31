@@ -71,6 +71,7 @@ class ApiClient implements MobileApi {
     Map<String, Object?> body = const {},
     Map<String, String> query = const {},
     String? actionKey,
+    void Function()? checkAdmission,
   }) async {
     final origin = config.apiOrigin;
     if (origin == null) throw const ApiError(0, 'UNCONFIGURED');
@@ -99,15 +100,25 @@ class ApiClient implements MobileApi {
       throw const FormatException('Unknown query');
     }
     final epoch = memory.nativeEpoch, generation = _generation;
-    void check() {
+    void checkSession() {
       if (generation != _generation ||
-          (!dedicated && (!memory.unlocked || epoch != memory.nativeEpoch))) {
+          (!dedicated &&
+              (!memory.unlocked ||
+                  epoch != memory.nativeEpoch ||
+                  (route.authenticated &&
+                      !identical(session, memory.current))))) {
         throw const ApiError(0, 'LOCKED');
       }
     }
 
+    void check() {
+      checkSession();
+      checkAdmission?.call();
+    }
+
     try {
       return await (() async {
+        check();
         final proof = await platform.signDpop(
           DpopMetadata(
             operation,
@@ -132,16 +143,20 @@ class ApiClient implements MobileApi {
               'Idempotency-Key': ?actionKey,
             },
             bytes,
+            checkAdmission: check,
           ),
         );
-        check();
+        // Current authenticated denial is a security barrier even when this
+        // command's result is obsolete. Old session/epoch responses have no
+        // authority to deny the current session.
+        checkSession();
         if (!dedicated &&
             route.authenticated &&
             response.statusCode == 403 &&
             platform is DomainAccessAuthority) {
           await (platform as DomainAccessAuthority).denyDomainAccess(epoch);
-          check();
         }
+        check();
         if (response.body.length > 262144) {
           throw const ApiError(0, 'RESPONSE_TOO_LARGE');
         }
