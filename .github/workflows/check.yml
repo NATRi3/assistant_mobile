@@ -33,6 +33,9 @@ jobs:
       - name: Native tests and Android assembly with dependency verification
         working-directory: android
         run: ./gradlew --no-daemon --dependency-verification strict :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Native API36 KVM instrumentation (synthetic installation)
+        timeout-minutes: 18
+        run: bash tool/run_android_instrumentation_ci.sh
       - name: Verify direct dependency origin and known runtime vulnerabilities
         run: |
           python3 tool/verify_dependency_pins.py > build/evidence/dependency-origins.json

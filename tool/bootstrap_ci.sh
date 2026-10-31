@@ -21,7 +21,7 @@ unzip -q -o "$task_cache/android.zip" -d "$task_cache/unpacked"
 mv "$task_cache/unpacked/cmdline-tools" "$task_cache/android/cmdline-tools/pinned"
 export ANDROID_HOME="$task_cache/android" ANDROID_SDK_ROOT="$task_cache/android"
 export PUB_CACHE="$task_cache/pub-cache" GRADLE_USER_HOME="$task_cache/gradle-cache"
-export PATH="$JAVA_HOME/bin:$task_cache/flutter/bin:$ANDROID_HOME/cmdline-tools/pinned/bin:$PATH"
+export PATH="$JAVA_HOME/bin:$task_cache/flutter/bin:$ANDROID_HOME/cmdline-tools/pinned/bin:$ANDROID_HOME/platform-tools:$PATH"
 export FLUTTER_SUPPRESS_ANALYTICS=true DART_SUPPRESS_ANALYTICS=true CI=true
 # License acceptance is scoped to the owner's authorized Android toolchain setup.
 set +o pipefail
@@ -29,7 +29,8 @@ yes | sdkmanager --licenses >/dev/null
 license_status=${PIPESTATUS[1]}
 set -o pipefail
 test "$license_status" -eq 0
-sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
+bash tool/bootstrap_android_emulator.sh --platform-tools-only
+sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
 printf '%s  %s\n' "$(read_pin android.android_jar_sha256)" "$ANDROID_HOME/platforms/android-36/android.jar" | sha256sum --check --status
 flutter config --no-analytics
 flutter precache --android
@@ -44,5 +45,5 @@ CHECK
 flutter pub get --enforce-lockfile
 if [[ -n "${GITHUB_ENV:-}" ]]; then
  for name in JAVA_HOME ANDROID_HOME ANDROID_SDK_ROOT PUB_CACHE GRADLE_USER_HOME; do printf '%s=%s\n' "$name" "${!name}" >> "$GITHUB_ENV"; done
- printf '%s\n' "$JAVA_HOME/bin" "$task_cache/flutter/bin" "$ANDROID_HOME/cmdline-tools/pinned/bin" >> "$GITHUB_PATH"
+ printf '%s\n' "$JAVA_HOME/bin" "$task_cache/flutter/bin" "$ANDROID_HOME/cmdline-tools/pinned/bin" "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
 fi
