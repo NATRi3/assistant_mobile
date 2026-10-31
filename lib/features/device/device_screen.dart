@@ -3,14 +3,25 @@ import 'package:flutter/material.dart';
 class DeviceScreen extends StatelessWidget {
   final String deviceId;
   final VoidCallback onLogout;
+  final VoidCallback? onBack;
   const DeviceScreen({
     super.key,
     required this.deviceId,
     required this.onLogout,
+    this.onBack,
   });
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Подключённый телефон')),
+    appBar: AppBar(
+      leading: onBack == null
+          ? null
+          : IconButton(
+              onPressed: onBack,
+              tooltip: 'Назад к делам',
+              icon: const Icon(Icons.arrow_back),
+            ),
+      title: const Text('Подключённый телефон'),
+    ),
     body: SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(24),
@@ -23,7 +34,7 @@ class DeviceScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Защищённая сессия сохранена. Задачи, диалог и уведомления ещё не входят в эту сборку.',
+            'Защищённая сессия сохранена. Отзыв телефона удалит сохранённые данные и сведения о командах с неизвестным исходом.',
           ),
           const SizedBox(height: 24),
           const Text('Идентификатор телефона'),

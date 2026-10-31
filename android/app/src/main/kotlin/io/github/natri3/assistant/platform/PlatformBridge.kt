@@ -16,13 +16,21 @@ class PlatformBridge(
  private val prefs=context.getSharedPreferences("public-device-state",Context.MODE_PRIVATE)
  private var session:Map<String,Any?>?=null
  private var closingAccess:String?=null
+ private val domain=DomainStore(PrivateCache(vault,{BuildConfig.ASSISTANT_API_ORIGIN},{session?.get("device_id") as String},{(session?.get("device_version") as Number).toLong()}),clock,object:DomainAccessState {
+ override var denied:Boolean
+ get()=prefs.getBoolean("domain_policy_denied",false)
+ set(value){check(prefs.edit().putBoolean("domain_policy_denied",value).commit())}
+ })
+ private fun bindDomain(){val owned=session?:error("NO_SESSION");domain.bind(BuildConfig.ASSISTANT_API_ORIGIN,owned["device_id"] as String,(owned["device_version"] as Number).toLong(),gate.epoch)}
+ fun clockChanged(){try{clock.invalidate();if(session!=null){bindDomain();domain.clockChanged()}}finally{lock()}}
+
  private val handler=android.os.Handler(android.os.Looper.getMainLooper())
  private val expire=Runnable{lock()}
  private var pendingUnlock:MethodChannel.Result?=null
  init { if(prefs.getBoolean("pending_logout",false)) destroy();channel.setMethodCallHandler(this) }
  fun resume(){gate.resume()}
- fun pause(){showCover();session=null;closingAccess=null;gate.pause();emitLock()}
- fun lock(){handler.removeCallbacks(expire);showCover();session=null;closingAccess=null;gate.lock();emitLock()}
+ fun pause(){showCover();domain.close();session=null;closingAccess=null;gate.pause();emitLock()}
+ fun lock(){handler.removeCallbacks(expire);showCover();domain.close();session=null;closingAccess=null;gate.lock();emitLock()}
  private fun emitLock(){channel.invokeMethod("locked",mapOf("native_epoch" to gate.epoch))}
  private fun map(args:Any?,fields:Set<String>):Map<String,Any?> {
  require(args is Map<*,*> && args.keys==fields)
@@ -48,18 +56,19 @@ class PlatformBridge(
  val (route,uri)=OperationRoutes.resolve(operation,args["resource_id"] as String?,BuildConfig.ASSISTANT_API_ORIGIN)
  val access=args["access_token"] as String?
  if(route.authenticated){val owned=if(gate.state==ForegroundGate.State.CLOSING)closingAccess else session?.get("access_token");check(access!=null&&access==owned){"FOREIGN_TOKEN"}}else require(access==null)
+ domain.requireOperation(operation)
  result.success(DpopSigner(keys.privateKey(),keys.publicJwk()).sign(route.method,uri,access,Instant.now().epochSecond))
  }
  "readPrivateCache"->{
  val args=map(call.arguments,setOf("slot"));gate.requireOpen();val s=slot(args["slot"])
- val record=if(s=="domain")PrivateCache(vault,clock).read() else vault.read(s)?.also{checkRefreshAge(it)}
+ require(s=="session");val record=vault.read(s)?.also{checkRefreshAge(it)}
  result.success(record?.filterKeys{it=="value"||it=="revision"||it=="synced_at"})
  }
  "writePrivateCache"->{
  val args=map(call.arguments,setOf("slot","value","native_epoch","expected_revision"));gate.requireOpen(args["native_epoch"] as Int)
  val s=slot(args["slot"]);val value=args["value"] as Map<String,Any?>;val expected=args["expected_revision"] as Int
+ if(s=="domain"){bindDomain();domain.patch(value,expected);result.success(null);return}
  val old=vault.read(s);check(expected==((old?.get("revision") as? Number)?.toInt()?:0))
- if(s=="domain"){PrivateCache(vault,clock).write(value,expected);return}
  require(value.keys==setOf("session","pending_refresh"));val dto=validateSession(value["session"] as Map<String,Any?>)
  val prior=(old?.get("value") as? Map<*,*>)?.get("session") as? Map<*,*>
  if(prior!=null){require(dto["device_id"]==prior["device_id"]&&dto["device_version"]==prior["device_version"])}
@@ -69,18 +78,38 @@ class PlatformBridge(
  vault.write(s,record);session=dto
  check(prefs.edit().putString("device_id",dto["device_id"] as String).commit());result.success(null)
  }
+ "denyDomainAccess"->{val args=map(call.arguments,setOf("native_epoch"));gate.requireOpen(args["native_epoch"] as Int);bindDomain();domain.denyAccess();channel.invokeMethod("domainAccessDenied",mapOf("native_epoch" to gate.epoch));result.success(null)}
+ "beginDomainRead"->{
+ val args=map(call.arguments,setOf("operation_id","resource_id","cursor","view_generation"));gate.requireOpen();bindDomain()
+ val ticket=domain.begin(args["operation_id"] as String,args["resource_id"] as String?,args["cursor"] as String?,args["view_generation"] as Int)
+ result.success(mapOf("ticket_id" to ticket.id,"native_epoch" to ticket.epoch,"view_generation" to ticket.generation))
+ }
+ "commitDomainRead"->{
+ val args=map(call.arguments,setOf("ticket_id","native_epoch","status_code","response_date","body","expected_revision"));gate.requireOpen(args["native_epoch"] as Int);bindDomain()
+ result.success(domain.commit(args["ticket_id"] as String,args["status_code"] as Int,args["response_date"] as String?,DomainDtos.map(args["body"]),args["expected_revision"] as Int))
+ }
+ "cancelDomainRead"->{val args=map(call.arguments,setOf("ticket_id"));domain.cancel(args["ticket_id"] as String);result.success(null)}
+ "readDomainFrame"->{noArgs(call.arguments);gate.requireOpen();bindDomain();result.success(domain.frame())}
  "clearLocalState"->{val args=map(call.arguments,setOf("phase"));when(args["phase"]){
- "cover"->{showCover();check(prefs.edit().putBoolean("pending_logout",true).putBoolean("logout_unconfirmed",true).commit());closingAccess=session?.get("access_token") as? String;session=null;gate.cover()}
+ "cover"->{showCover();domain.close();check(prefs.edit().putBoolean("pending_logout",true).putBoolean("logout_unconfirmed",true).commit());closingAccess=session?.get("access_token") as? String;session=null;gate.cover()}
  "destroy"->destroy()
  else->error("INVALID_PHASE")};result.success(null)}
  "acknowledgeCover"->{val args=map(call.arguments,setOf("native_epoch"));check(gate.foreground&&gate.state!=ForegroundGate.State.OPEN&&(args["native_epoch"] as Int)==gate.epoch);hideCover();result.success(null)}
  "recordRevokeResult"->{val args=map(call.arguments,setOf("confirmed"));require(args["confirmed"] is Boolean);check(gate.state==ForegroundGate.State.DESTROYED);check(prefs.edit().putBoolean("logout_unconfirmed",!(args["confirmed"] as Boolean)).commit());result.success(null)}
  else->result.notImplemented()
  }
+ }catch(_:DomainReadSuperseded){
+ if(call.method=="commitDomainRead")result.error("DOMAIN_READ_SUPERSEDED","Загрузка заменена новым запросом.",null)
+ else{lock();result.error("SECURITY_BOUNDARY","Защищённая операция недоступна.",null)}
+ }catch(e:DomainFailure){
+ // Only normal cache misses/conflicts are nonfatal. Foreign/crypto/input failures
+ // still take the original fail-closed branch below.
+ if(e.code in setOf("DOMAIN_REVISION_CONFLICT","DOMAIN_CAPACITY","DOMAIN_UNSUPPORTED_SCHEMA","DOMAIN_ACCESS_DENIED"))result.error(e.code,"Сохранённые данные недоступны. Обновите данные или проверьте результат команды.",null)
+ else {lock();result.error("SECURITY_BOUNDARY","Защищённая операция недоступна.",null)}
  }catch(_:Exception){
  // Never serialize exception messages, credentials, request bodies or paths.
  if(call.method=="unlockAndReadSession")pendingUnlock=null
- if(call.method=="unlockAndReadSession"||call.method=="signDpop"||call.method=="readPrivateCache"||call.method=="writePrivateCache")lock()
+ if(call.method=="unlockAndReadSession"||call.method=="signDpop"||call.method=="readPrivateCache"||call.method=="writePrivateCache"||call.method=="beginDomainRead"||call.method=="commitDomainRead"||call.method=="readDomainFrame"||call.method=="denyDomainAccess")lock()
  result.error("SECURITY_BOUNDARY","Операция недоступна. Разблокируйте телефон или подключите его заново.",null)
  }
  }
@@ -112,7 +141,7 @@ class PlatformBridge(
  Instant.parse(j["server_time"] as String);Instant.parse(j["refresh_expires_at"] as String);return j.toMap()
  }
  private fun destroy(){
- handler.removeCallbacks(expire);pendingUnlock?.error("AUTH_CANCELLED","Разблокировка отменена",null);pendingUnlock=null;showCover();session=null;closingAccess=null;gate.destroy()
+ handler.removeCallbacks(expire);pendingUnlock?.error("AUTH_CANCELLED","Разблокировка отменена",null);pendingUnlock=null;showCover();domain.close();session=null;closingAccess=null;gate.destroy()
  emitLock()
  vault.destroy();keys.destroy();context.getSystemService(android.app.NotificationManager::class.java).cancelAll()
  check(prefs.edit().putBoolean("pending_logout",false).commit())

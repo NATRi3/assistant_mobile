@@ -8,8 +8,23 @@ import 'operation.dart';
 import 'api_error.dart';
 import 'http_transport.dart';
 import 'strict_json.dart';
+import 'json_value.dart';
 export 'operation.dart';
 export 'http_transport.dart';
+
+class ApiResult {
+  final int statusCode;
+  final Map<String, String> headers;
+  final Map<String, Object?> body;
+  ApiResult(
+    this.statusCode,
+    Map<String, String> headers,
+    Map<String, Object?> body,
+  ) : headers = Map.unmodifiable(headers),
+      body = freezeJson(body)! as Map<String, Object?>;
+  @override
+  String toString() => 'ApiResult([redacted])';
+}
 
 abstract interface class MobileApi {
   Future<Map<String, Object?>> call(
@@ -38,6 +53,19 @@ class ApiClient implements MobileApi {
   });
   @override
   Future<Map<String, Object?>> call(
+    ApiOperation operation, {
+    String? resourceId,
+    Map<String, Object?> body = const {},
+    Map<String, String> query = const {},
+    String? actionKey,
+  }) async => (await callResult(
+    operation,
+    resourceId: resourceId,
+    body: body,
+    query: query,
+    actionKey: actionKey,
+  )).body;
+  Future<ApiResult> callResult(
     ApiOperation operation, {
     String? resourceId,
     Map<String, Object?> body = const {},
@@ -107,6 +135,13 @@ class ApiClient implements MobileApi {
           ),
         );
         check();
+        if (!dedicated &&
+            route.authenticated &&
+            response.statusCode == 403 &&
+            platform is DomainAccessAuthority) {
+          await (platform as DomainAccessAuthority).denyDomainAccess(epoch);
+          check();
+        }
         if (response.body.length > 262144) {
           throw const ApiError(0, 'RESPONSE_TOO_LARGE');
         }
@@ -122,7 +157,9 @@ class ApiClient implements MobileApi {
           if (response.statusCode != expected) {
             throw const ApiError(0, 'INVALID_RESPONSE');
           }
-          if (expected == 204) return <String, Object?>{};
+          if (expected == 204) {
+            return ApiResult(204, response.headers, const {});
+          }
         }
         Object? decoded;
         try {
@@ -144,7 +181,11 @@ class ApiClient implements MobileApi {
                 : 'REQUEST_FAILED',
           );
         }
-        return Map<String, Object?>.from(decoded);
+        return ApiResult(
+          response.statusCode,
+          response.headers,
+          Map<String, Object?>.from(decoded),
+        );
       })().timeout(const Duration(seconds: 5));
     } on TimeoutException {
       cancelPrivateRequests();
