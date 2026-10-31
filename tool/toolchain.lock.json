@@ -1,0 +1,40 @@
+{
+  "flutter": {
+    "version": "3.47.9",
+    "commit": "c197ca5199e9ee5661e865596c9c07294dfab51c",
+    "engine": "89c39edfdfae2949f6806e4a315c0c08522238b7",
+    "repository": "https://github.com/flutter/flutter.git"
+  },
+  "dart": "3.13.7",
+  "jdk": {
+    "version": "21.0.13+9",
+    "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz",
+    "sha256": "d7f5d5cf865a2902b70ff549b97586a7d3f234e016f041ab447ea740c7d66d1c"
+  },
+  "android": {
+    "cmdline_url": "https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip",
+    "cmdline_sha256": "0877a1d048fe4a24efe2eff536ca4223f7adeb58648bb81909d33c446918cfa8",
+    "sdk": 36,
+    "build_tools": "36.0.0",
+    "ndk": "28.2.13676358",
+    "platform_revision": 2,
+    "android_jar_sha256": "d9eb9da824d9e247a352f570f01e1169e725b2954bca9e283a71786c59b59f9a"
+  },
+  "gradle": {
+    "version": "9.3.1",
+    "distribution": "https://services.gradle.org/distributions/gradle-9.3.1-all.zip",
+    "sha256": "17f277867f6914d61b1aa02efab1ba7bb439ad652ca485cd8ca6842fccec6e43"
+  },
+  "agp": "9.1.0",
+  "kotlin": "2.4.21",
+  "jvm_target": 17,
+  "native": {
+    "androidx.biometric:biometric": "1.1.0",
+    "com.nimbusds:nimbus-jose-jwt": "10.9.1",
+    "com.google.guava:guava": "33.7.2-android"
+  },
+  "actions": {
+    "checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "upload_artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02"
+  }
+}

@@ -1,0 +1,19 @@
+name: assistant
+description: Android owner pairing and secure session foundation.
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.13.7 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - design/tokens/semantic.json

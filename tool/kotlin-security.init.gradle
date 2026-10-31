@@ -1,0 +1,46 @@
+// Root-authorized compiler security patch, including the pinned Flutter SDK's
+// included build. Do not edit vendor sources or consume shared build caches.
+gradle.beforeSettings { settings ->
+    settings.pluginManagement.resolutionStrategy.eachPlugin {
+        if (requested.id.id.startsWith('org.jetbrains.kotlin.')) {
+            useVersion('2.4.21')
+        }
+    }
+}
+gradle.beforeProject { project ->
+    project.dependencyLocking.lockAllConfigurations()
+    if (project.name in ['gradle', 'integration_test']) {
+        def policy = gradle.startParameter.initScripts.find { it.name == 'kotlin-security.init.gradle' }
+        assert policy != null
+        def lockDir = new File(policy.parentFile, 'gradle-locks')
+        lockDir.mkdirs()
+        project.dependencyLocking.lockFile.set(new File(lockDir, "${project.name}.lockfile"))
+    }
+    project.tasks.register('compilerProvenance') {
+        doLast {
+            ['org.jetbrains.kotlin.jvm', 'org.jetbrains.kotlin.android'].each { id ->
+                def plugin = project.plugins.findPlugin(id)
+                if (plugin != null) println("COMPILER_PROVENANCE ${project.path} ${id} ${plugin.class.protectionDomain.codeSource.location}")
+            }
+            ['compileClasspath', 'runtimeClasspath', 'debugRuntimeClasspath'].each { name ->
+                def config = project.configurations.findByName(name)
+                if (config != null && config.canBeResolved) {
+                    config.incoming.resolutionResult.allComponents.each { c ->
+                        if (c.moduleVersion?.group == 'org.jetbrains.kotlin' && c.moduleVersion.name.startsWith('kotlin-gradle-plugin')) println("COMPILER_DEPENDENCY ${project.path} ${name} ${c.moduleVersion}")
+                    }
+                }
+            }
+        }
+    }
+    [project.configurations, project.buildscript.configurations].each { configs ->
+        configs.configureEach {
+            resolutionStrategy.eachDependency { detail ->
+                if (detail.requested.group == 'org.jetbrains.kotlin' &&
+                    detail.requested.name.startsWith('kotlin-gradle-plugin')) {
+                    detail.useVersion('2.4.21')
+                    detail.because('GHSA-r937-wjx7-w2jp; root-authorized stable compiler patch')
+                }
+            }
+        }
+    }
+}

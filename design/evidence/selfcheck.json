@@ -1,0 +1,360 @@
+{
+  "checked_at": "2026-10-31T09:35:45.532796+00:00",
+  "artifact_version": "0.1.0-review",
+  "role": "Product Designer selfcheck",
+  "result": "PASS_FOR_LISTED_LOCAL_CHECKS",
+  "checks": [
+    {
+      "check": "JSON parse",
+      "result": "PASS",
+      "detail": "9 current JSON files parsed"
+    },
+    {
+      "check": "Semantic contrast",
+      "result": "PASS",
+      "detail": "26 pairs; numeric AA text/control thresholds only, not a rendered audit"
+    },
+    {
+      "check": "Synthetic fixtures",
+      "result": "PASS",
+      "detail": "No actual credentials or owner content"
+    },
+    {
+      "check": "Privacy token policy",
+      "result": "PASS",
+      "detail": "Generic push; widget count/time/last_sync only"
+    },
+    {
+      "check": "SVG XML/editable layers",
+      "result": "PASS",
+      "detail": "56 SVG parsed; title/desc present, no raster/external refs/script/foreignObject"
+    },
+    {
+      "check": "SVG coordinate bounds",
+      "result": "PASS",
+      "detail": "All vector rectangles and text origins inside frames; glyph extents/rendering not verified"
+    },
+    {
+      "check": "Nine screens in two themes",
+      "result": "PASS",
+      "detail": "D01–D09 base frames exist"
+    },
+    {
+      "check": "Minimum targets",
+      "result": "PASS",
+      "detail": "Token + CSS minimum 48; main buttons 56. Actual rendered target bounds pending browser/Android QA"
+    },
+    {
+      "check": "CSP index.html",
+      "result": "PASS",
+      "detail": "connect-src none; no remote resources"
+    },
+    {
+      "check": "CSP directions.html",
+      "result": "PASS",
+      "detail": "connect-src none; no remote resources"
+    },
+    {
+      "check": "Local links/resources",
+      "result": "PASS",
+      "detail": "HTML/CSS/JS/images/Markdown references resolve; no HTML remote resources"
+    },
+    {
+      "check": "No network or persistence API",
+      "result": "PASS",
+      "detail": "JS inspection plus CSP; not a dynamic network trace"
+    },
+    {
+      "check": "States match HTML JS mapping",
+      "result": "PASS",
+      "detail": "Machine state map and prototype state lists agree"
+    },
+    {
+      "check": "D02 ReminderSummary never exposes detail text",
+      "result": "PASS",
+      "detail": "13 D02/A/B light/dark/state SVG frames plus HTML branch checked; fixture summary has no text/title/linked_task_id; D05 retains detail text"
+    },
+    {
+      "check": "Offline logout visibly unconfirmed",
+      "result": "PASS",
+      "detail": "After local clear, D01 warning/instruction persists; no offline server success; synthetic device ID only"
+    },
+    {
+      "check": "Notification category/channel distinction",
+      "result": "PASS",
+      "detail": "Product UI says useful reminders; native handoff keeps ordinary/silent channels distinct and preserves OS-controlled importance/sound"
+    },
+    {
+      "check": "Flow map resolvable",
+      "result": "PASS",
+      "detail": "F01–F07 reference real screen IDs; action guards inspected statically"
+    },
+    {
+      "check": "Mutation guards + replay handling",
+      "result": "PASS",
+      "detail": "Offline/stale/unknown guards, completion/snooze flags and reconcile handlers present; static, not runtime execution"
+    },
+    {
+      "check": "Unlock/fetch distinct from mutation",
+      "result": "PASS",
+      "detail": "Push routes to current detail; command requires separate button/confirmation"
+    },
+    {
+      "check": "Logout clears local projection",
+      "result": "PASS",
+      "detail": "HTML memory projection clears and D09 hides notification/summary; no actual Android wipe claimed"
+    },
+    {
+      "check": "Reduced motion + Cyrillic",
+      "result": "PASS",
+      "detail": "Default low motion; system fonts, RU language. Rendering/glyph availability not verified"
+    },
+    {
+      "check": "Deterministic rebuild",
+      "result": "PASS",
+      "detail": "{\"generated_files\": 57, \"mismatches\": []}"
+    },
+    {
+      "check": "Actual SVG/source ZIP recovery",
+      "result": "PASS",
+      "detail": "72 files exported, extracted to fresh temporary directory and SHA256 compared. Not Penpot import."
+    }
+  ],
+  "contrast": [
+    {
+      "theme": "light",
+      "foreground": "text",
+      "background": "background",
+      "minimum": 4.5,
+      "ratio": 13.6728,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "text",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 14.8407,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 6.3468,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "background",
+      "minimum": 4.5,
+      "ratio": 5.8474,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "text",
+      "background": "soft",
+      "minimum": 4.5,
+      "ratio": 12.4812,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "onPrimary",
+      "background": "primary",
+      "minimum": 4.5,
+      "ratio": 7.4012,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "primary",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 7.4012,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "warning",
+      "background": "warningSurface",
+      "minimum": 4.5,
+      "ratio": 7.0199,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "danger",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 7.0606,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "border",
+      "background": "surface",
+      "minimum": 3,
+      "ratio": 3.7913,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "border",
+      "background": "background",
+      "minimum": 3,
+      "ratio": 3.493,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "soft",
+      "minimum": 4.5,
+      "ratio": 5.3377,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "foreground": "border",
+      "background": "soft",
+      "minimum": 3,
+      "ratio": 3.1885,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "text",
+      "background": "background",
+      "minimum": 4.5,
+      "ratio": 14.7987,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "text",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 12.5534,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 7.9718,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "background",
+      "minimum": 4.5,
+      "ratio": 9.3976,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "text",
+      "background": "soft",
+      "minimum": 4.5,
+      "ratio": 9.8339,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "onPrimary",
+      "background": "primary",
+      "minimum": 4.5,
+      "ratio": 7.5078,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "primary",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 9.3243,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "warning",
+      "background": "warningSurface",
+      "minimum": 4.5,
+      "ratio": 9.4121,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "danger",
+      "background": "surface",
+      "minimum": 4.5,
+      "ratio": 9.0152,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "border",
+      "background": "surface",
+      "minimum": 3,
+      "ratio": 4.8704,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "border",
+      "background": "background",
+      "minimum": 3,
+      "ratio": 5.7416,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "soft",
+      "minimum": 4.5,
+      "ratio": 6.2448,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "foreground": "border",
+      "background": "soft",
+      "minimum": 3,
+      "ratio": 3.8153,
+      "pass": true
+    }
+  ],
+  "limitations": [
+    {
+      "control": "Independent browser rerun/current snapshot",
+      "result": "PENDING",
+      "reason": "Designer targeted browser regressions passed for permission cancellation and navigation at 200%; prior independent QA found these defects on older hashes; full independent current-snapshot rerun required"
+    },
+    {
+      "control": "Other JavaScript runtime keyflows",
+      "result": "PENDING",
+      "reason": "This selfcheck inspects flow/action guards statically; designer executed only the two targeted browser defect regressions, not the full independent QA suite"
+    },
+    {
+      "control": "Android TalkBack/OS permission/lockscreen/widget/push",
+      "result": "PENDING",
+      "reason": "No APK or real Android integration; design artifacts only"
+    },
+    {
+      "control": "PO final approval / independent G4/G5",
+      "result": "PENDING",
+      "reason": "Author selfcheck does not sign independent acceptance"
+    },
+    {
+      "control": "Optional future Penpot import/editability/restore",
+      "result": "NOT_PERFORMED_OPTIONAL",
+      "reason": "No connected workspace; updated AS-83 AC3 accepts editable SVG + generator/tokens/preview/manifest + ZIP restore. No Penpot completion claimed."
+    }
+  ]
+}

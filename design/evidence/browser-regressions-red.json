@@ -1,0 +1,158 @@
+{
+  "checked_at": "2026-10-31T09:33:44.365153+00:00",
+  "role": "Designer targeted regression; not independent QA/G5",
+  "phase": "red",
+  "result": "FAIL",
+  "chromium": "156.0.8078.4",
+  "checks": [
+    {
+      "check": "Permission cancel/Escape leaves visual and persisted demo state unchecked; confirm still works",
+      "result": "FAIL",
+      "error": "Locator expected not to be checked\nActual value: checked \nCall log:\n  - Expect \"not_to_be_checked\" locator(\"[data-toggle=\\\"notifications\\\"]\") with timeout 500ms\n  - waiting for locator(\"[data-toggle=\\\"notifications\\\"]\")\n    6 × locator resolved to <input type=\"checkbox\" data-toggle=\"notifications\"/>\n      - unexpected value \"checked\"\n\nAria snapshot:\n- checkbox \"Полезные напоминания Всегда нейтральный текст. Тихие часы учитываются.\" [checked]"
+    },
+    {
+      "check": "Navigation glyphs fit clickable bounds without overlap at 100/200%, both themes, 360/412/480px",
+      "result": "FAIL",
+      "error": "[{'label': 'Сегодня', 'button': {'left': 41, 'right': 176, 'top': 2261.609375, 'bottom': 2332.40625, 'height': 70.796875}, 'glyph': {'left': 48, 'right': 201, 'top': 2277.609375, 'bottom': 2315.609375}, 'fits': False}, {'label': 'Диалог', 'button': {'left': 184, 'right': 319, 'top': 2261.609375, 'bottom': 2332.40625, 'height': 70.796875}, 'glyph': {'left': 191, 'right': 326, 'top': 2277.609375, 'bottom': 2315.609375}, 'fits': False}]"
+    }
+  ],
+  "layout_cases": [
+    {
+      "width": 360,
+      "scale": "1",
+      "theme": "light",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 176,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 70.5,
+            "right": 146.5,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 184,
+            "right": 319,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 218,
+            "right": 285,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 360,
+      "scale": "1",
+      "theme": "dark",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 176,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 70.5,
+            "right": 146.5,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 184,
+            "right": 319,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 218,
+            "right": 285,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 360,
+      "scale": "2",
+      "theme": "light",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 176,
+            "top": 2261.609375,
+            "bottom": 2332.40625,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 48,
+            "right": 201,
+            "top": 2277.609375,
+            "bottom": 2315.609375
+          },
+          "fits": false
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 184,
+            "right": 319,
+            "top": 2261.609375,
+            "bottom": 2332.40625,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 191,
+            "right": 326,
+            "top": 2277.609375,
+            "bottom": 2315.609375
+          },
+          "fits": false
+        }
+      ],
+      "overlap": true
+    }
+  ],
+  "source_sha256": {
+    "preview/review.js": "72f8063adf825b5577a3a3b7178caa3f9acde02d2eeaf3594a28a23a4030da0e",
+    "preview/layout.css": "791985401b8c1cce94191fe48fd0ad4551331b411d70663c201768d801ac742c",
+    "preview/review.css": "72bb63cb612f5ffc230708737d5a894f1bb1b0e5e4828b1ba2ca2d838c7e6d1c"
+  },
+  "source_unchanged_during_run": true,
+  "page_errors": [],
+  "external_requests_blocked": []
+}

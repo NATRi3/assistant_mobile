@@ -1,0 +1,170 @@
+{
+  "version": "0.1.0-review",
+  "direction": "A — Тихий рабочий стол",
+  "status": "review-ready; final PO acceptance pending",
+  "primitive": {
+    "space": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48
+    ],
+    "radius": {
+      "small": 12,
+      "card": 24,
+      "button": 16
+    },
+    "font": {
+      "family": "system-ui, sans-serif",
+      "bodySp": 16,
+      "labelSp": 14,
+      "titleSp": 24,
+      "headlineSp": 32,
+      "bodyLineHeight": 1.5
+    },
+    "motionMs": {
+      "feedback": 100,
+      "transition": 200,
+      "reduced": 0
+    }
+  },
+  "semantic": {
+    "light": {
+      "background": "#F4F6F5",
+      "surface": "#FFFFFF",
+      "text": "#182B28",
+      "muted": "#52635F",
+      "primary": "#255F52",
+      "onPrimary": "#FFFFFF",
+      "soft": "#E3EEE8",
+      "border": "#758781",
+      "warning": "#694C13",
+      "warningSurface": "#FFF0C9",
+      "danger": "#9C3535",
+      "focus": "#255F52"
+    },
+    "dark": {
+      "background": "#101C18",
+      "surface": "#1A2B25",
+      "text": "#E3EFE8",
+      "muted": "#AEC3B7",
+      "primary": "#A6D8C0",
+      "onPrimary": "#153E2D",
+      "soft": "#293D32",
+      "border": "#7F9A8B",
+      "warning": "#F6D997",
+      "warningSurface": "#3B301B",
+      "danger": "#FFB8B4",
+      "focus": "#A6D8C0"
+    }
+  },
+  "component": {
+    "button": {
+      "minTargetDp": 48,
+      "comfortableHeightDp": 56,
+      "background": "primary",
+      "foreground": "onPrimary"
+    },
+    "card": {
+      "background": "surface",
+      "foreground": "text",
+      "paddingDp": 24
+    },
+    "status": {
+      "foreground": "muted",
+      "textRequired": true
+    },
+    "focus": {
+      "color": "focus",
+      "widthDp": 3,
+      "offsetDp": 3
+    },
+    "widget": {
+      "default": "generic",
+      "optInFields": [
+        "open_task_count",
+        "nearest_reminder_time",
+        "last_sync"
+      ],
+      "privateText": false
+    },
+    "notification": {
+      "content": "generic-always",
+      "privateText": false,
+      "actions": [
+        "open",
+        "snooze10m-after-unlock-and-fetch"
+      ]
+    }
+  },
+  "contrastPairs": [
+    {
+      "foreground": "text",
+      "background": "background",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "text",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "muted",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "muted",
+      "background": "background",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "text",
+      "background": "soft",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "onPrimary",
+      "background": "primary",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "primary",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "warning",
+      "background": "warningSurface",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "danger",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "border",
+      "background": "surface",
+      "minimum": 3
+    },
+    {
+      "foreground": "border",
+      "background": "background",
+      "minimum": 3
+    },
+    {
+      "foreground": "muted",
+      "background": "soft",
+      "minimum": 4.5
+    },
+    {
+      "foreground": "border",
+      "background": "soft",
+      "minimum": 3
+    }
+  ]
+}
