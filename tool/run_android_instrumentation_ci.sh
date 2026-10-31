@@ -19,11 +19,37 @@ export ANDROID_SERIAL="$serial" ADB_SERVER_SOCKET="tcp:localhost:5038" ANDROID_A
 export AS91_EMULATOR_STARTED=false AS91_DISK_AFTER_INSTALL=0
 receipt() {
  AS91_EXIT_STATUS="$1" python3 - <<'PY'
-import hashlib,json,os,pathlib,platform,re,subprocess,zipfile
+import hashlib,json,os,pathlib,platform,re,shlex,subprocess,zipfile
 root=pathlib.Path.cwd(); out=pathlib.Path(os.environ['AS91_EVIDENCE'])
 def command(args,limit=512):
  try:return subprocess.check_output(args,stderr=subprocess.DEVNULL,timeout=5,text=True).strip()[:limit]
  except (OSError,subprocess.SubprocessError):return 'UNAVAILABLE'
+def metadata_command(filename):
+ assert filename in ('as91-runtime-metrics.json','as91-prompt-ui.json')
+ remote='if [ ! -f cache/'+filename+' ]; then exit 44; fi; exec head -c 4097 cache/'+filename
+ return [str(sdk/'platform-tools/adb'),'-s','emulator-5554','shell','run-as','io.github.natri3.assistant','sh','-c',shlex.quote(remote)]
+def read_metadata(args,validate):
+ try:result=subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=5)
+ except subprocess.TimeoutExpired:return {'status':'TIMEOUT'}
+ except OSError:return {'status':'READ_EXIT'}
+ if result.returncode!=0:return {'status':'NO_FILE' if result.returncode==44 else 'READ_EXIT','exit_code':result.returncode}
+ if len(result.stdout)>4096:return {'status':'INVALID_SCHEMA'}
+ try:value=json.loads(result.stdout)
+ except (ValueError,UnicodeError):return {'status':'INVALID_JSON'}
+ try:validate(value)
+ except (ValueError,TypeError,KeyError):return {'status':'INVALID_SCHEMA'}
+ return {'status':'OK','value':value}
+def valid_metrics(value):
+ if type(value) is not dict or set(value)!={'expiry_wait_ms','ec_security_level','aes_security_level'}:raise ValueError()
+ if not all(type(v) is int and -9<=v<=999999999 for v in value.values()) or value['expiry_wait_ms']<305000:raise ValueError()
+def valid_diagnostic(value):
+ if type(value) is not dict or set(value)!={'phase','native_code','root_state','resource_ids','view_ids_reported'}:raise ValueError()
+ if value['phase'] not in ('NATIVE_REQUEST','BEFORE_UI','WINDOW_WAIT','PIN_LOOKUP','BEFORE_PIN','WINDOW_TIMEOUT','PIN_TIMEOUT','RESULT_WAIT'):raise ValueError()
+ if value['native_code'] not in ('NO_UNLOCK_REQUEST','PENDING','SUCCESS','SECURITY_BOUNDARY','AUTH_CANCELLED','AUTH_UNAVAILABLE','NOT_IMPLEMENTED','OTHER_ERROR','FUTURE_FAILED'):raise ValueError()
+ if value['root_state'] not in ('NOT_SAMPLED','NO_ROOT','SYSTEM_SETTINGS','SYSTEM_UI','OTHER_PACKAGE'):raise ValueError()
+ ids=value['resource_ids']
+ if type(ids) is not list or len(ids)>32 or type(value['view_ids_reported']) is not bool:raise ValueError()
+ if not all(type(v) is str and re.fullmatch(r'com\.android\.(settings|systemui):id/[A-Za-z0-9_]{1,80}',v) for v in ids):raise ValueError()
 event={}
 try:event=json.loads(pathlib.Path(os.environ.get('GITHUB_EVENT_PATH','/nonexistent')).read_text())
 except (OSError,ValueError):pass
@@ -59,23 +85,17 @@ for relative in ['build/app/outputs/apk/debug/app-debug.apk','build/app/outputs/
    with zipfile.ZipFile(path) as apk: native_libraries=sorted(n for n in apk.namelist() if n.startswith('lib/') and n.endswith('.so'))
   except zipfile.BadZipFile:native_libraries=[]
   receipt['apks'].append({'path':relative,'sha256':digest,'bytes':path.stat().st_size,'native_libraries':native_libraries,'metadata':command([str(sdk/'cmdline-tools/pinned/bin/apkanalyzer'),'apk','summary',str(path)])})
-# Read only the fixed, bounded numeric metrics file written by androidTest, never app data directories.
-metrics=command([str(sdk/'platform-tools/adb'),'-s','emulator-5554','shell','run-as','io.github.natri3.assistant','cat','cache/as91-runtime-metrics.json']) if os.environ['AS91_EMULATOR_STARTED']=='true' else '{}'
-try:
- values=json.loads(metrics)
- assert set(values)=={'expiry_wait_ms','ec_security_level','aes_security_level'}
- assert all(type(v) is int and -9<=v<=999999999 for v in values.values())
- assert values['expiry_wait_ms']>=305000
- receipt['auth_metrics']=values
-except (ValueError,AssertionError,TypeError):receipt['auth_metrics']='PENDING'
-if os.environ['AS91_EMULATOR_STARTED']=='true':
- diagnostic=command([str(sdk/'platform-tools/adb'),'-s','emulator-5554','shell','run-as','io.github.natri3.assistant','cat','cache/as91-prompt-ui.json'],4096)
- try:
-  ids=json.loads(diagnostic)
-  assert type(ids) is list and len(ids)<=32
-  assert all(type(v) is str and re.fullmatch(r'com\.android\.(settings|systemui):id/[A-Za-z0-9_]{1,80}',v) for v in ids)
-  receipt['unrecognized_prompt_system_resource_ids']=ids
- except (ValueError,AssertionError,TypeError):pass
+# Only two fixed metadata files; remote head and local validation bound every read.
+metrics=read_metadata(metadata_command('as91-runtime-metrics.json'),valid_metrics) if os.environ['AS91_EMULATOR_STARTED']=='true' else {'status':'NOT_STARTED'}
+receipt['auth_metrics_extraction']={k:v for k,v in metrics.items() if k!='value'}
+receipt['auth_metrics']=metrics.get('value','PENDING')
+diagnostic=read_metadata(metadata_command('as91-prompt-ui.json'),valid_diagnostic) if os.environ['AS91_EMULATOR_STARTED']=='true' else {'status':'NOT_STARTED'}
+receipt['native_diagnostic_extraction']={k:v for k,v in diagnostic.items() if k!='value'}
+if diagnostic['status']=='OK':
+ receipt['native_diagnostic']=diagnostic['value']
+ receipt['unrecognized_prompt_system_resource_ids']=diagnostic['value']['resource_ids']
+elif diagnostic['status']=='READ_EXIT':
+ receipt['diagnostic_target_installed']=command([str(sdk/'platform-tools/adb'),'-s','emulator-5554','shell','pm','path','io.github.natri3.assistant']).startswith('package:')
 if receipt['exit_status']==0 and (receipt['auth_metrics']=='PENDING' or len(receipt['apks'])!=2 or any(apk['metadata']=='UNAVAILABLE' for apk in receipt['apks']) or any(receipt[key]=='UNAVAILABLE' for key in ['fingerprint','security_patch','abi'])):
  receipt['exit_status']=1;receipt['phase']='EVIDENCE_INCOMPLETE';receipt['runtime_status']='PENDING_OR_FAILED'
 (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')

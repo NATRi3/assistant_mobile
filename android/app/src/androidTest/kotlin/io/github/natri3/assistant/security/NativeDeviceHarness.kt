@@ -31,6 +31,12 @@ class NativeDeviceHarness : Closeable {
     private var scenario: ActivityScenario<MainActivity>? = null
     private lateinit var bridge: PlatformBridge
     private var owned = false
+    private var unlockObservation: NativeUnlockObservation? = null
+    private var diagnosticPhase = "NATIVE_REQUEST"
+    private var diagnosticCode = "NO_UNLOCK_REQUEST"
+    private var diagnosticRoot = "NOT_SAMPLED"
+    private var diagnosticIds = emptyList<String>()
+    private var diagnosticViewIds = false
 
     fun openFreshActivity() {
         check(InstrumentationRegistry.getArguments().getString("synthetic_emulator") == "true") { "SYNTHETIC_MODE_REQUIRED" }
@@ -89,6 +95,10 @@ class NativeDeviceHarness : Closeable {
 
     private fun beginCall(method: String, arguments: Any?): CompletableFuture<NativeResult> {
         val future = CompletableFuture<NativeResult>()
+        if (method == "unlockAndReadSession") {
+            recordNativeResult("NATIVE_REQUEST", "PENDING")
+            unlockObservation = NativeUnlockObservation(future, ::recordNativeResult)
+        }
         instrumentation.runOnMainSync {
             bridge.onMethodCall(MethodCall(method, arguments), object : MethodChannel.Result {
                 override fun success(value: Any?) { check(future.complete(NativeResult(value, null))) { "DUPLICATE_NATIVE_RESULT" } }
@@ -121,10 +131,34 @@ class NativeDeviceHarness : Closeable {
         return null
     }
 
-    private fun recordSystemResourceIds() {
+    @Synchronized private fun recordNativeResult(phase: String, code: String) {
+        diagnosticPhase = phase
+        diagnosticCode = code
+        persistDiagnostic()
+    }
+
+    private fun persistDiagnostic() {
+        // Best-effort diagnostics must never replace the original native failure.
+        runCatching {
+            val value = org.json.JSONObject().apply {
+                put("phase", diagnosticPhase); put("native_code", diagnosticCode)
+                put("root_state", diagnosticRoot); put("resource_ids", org.json.JSONArray(diagnosticIds))
+                put("view_ids_reported", diagnosticViewIds)
+            }
+            File(context.cacheDir, "as91-prompt-ui.json").writeText(value.toString())
+        }
+    }
+
+    private fun recordSystemResourceIds(phase: String) {
         // Resource IDs only: no text, credential field contents, hierarchy or screenshot.
         val ids = sortedSetOf<String>()
         val root = instrumentation.uiAutomation.rootInActiveWindow
+        val rootState = when {
+            root == null -> "NO_ROOT"
+            root.packageName?.toString() == "com.android.settings" -> "SYSTEM_SETTINGS"
+            root.packageName?.toString() == "com.android.systemui" -> "SYSTEM_UI"
+            else -> "OTHER_PACKAGE"
+        }
         if (root != null && root.packageName?.toString() in systemPackages) {
             find(root) {
                 val id = it.viewIdResourceName
@@ -132,17 +166,38 @@ class NativeDeviceHarness : Closeable {
                 false
             }
         }
-        File(context.cacheDir, "as91-prompt-ui.json").writeText(org.json.JSONArray(ids.toList()).toString())
+        val reportIds = instrumentation.uiAutomation.serviceInfo.flags and android.accessibilityservice.AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS != 0
+        synchronized(this) {
+            diagnosticPhase = phase; diagnosticRoot = rootState
+            diagnosticIds = ids.toList(); diagnosticViewIds = reportIds
+            persistDiagnostic()
+        }
+    }
+
+    private fun requireNativePending(phase: String) {
+        try {
+            unlockObservation?.requirePending(phase)
+        } catch (failure: IllegalStateException) {
+            // A diagnostic read failure must not mask this allowlisted Result/phase.
+            runCatching { recordSystemResourceIds(phase) }
+            throw failure
+        }
     }
 
     fun awaitCredentialWindow(): AccessibilityNodeInfo {
         val deadline = SystemClock.elapsedRealtime() + 10000
         while (SystemClock.elapsedRealtime() < deadline) {
+            requireNativePending("WINDOW_WAIT")
             val root = instrumentation.uiAutomation.rootInActiveWindow
-            if (root != null && root.packageName?.toString() in systemPackages && find(root) { it.viewIdResourceName in pinIds || it.text?.toString() == "Разблокировать ассистента" } != null) return root
+            if (root != null && root.packageName?.toString() in systemPackages && find(root) { it.viewIdResourceName in pinIds || it.text?.toString() == "Разблокировать ассистента" } != null) {
+                runCatching { recordSystemResourceIds("WINDOW_WAIT") }
+                requireNativePending("WINDOW_WAIT")
+                return root
+            }
             SystemClock.sleep(100)
         }
-        recordSystemResourceIds()
+        requireNativePending("WINDOW_TIMEOUT")
+        runCatching { recordSystemResourceIds("WINDOW_TIMEOUT") }
         error("SYSTEM_CREDENTIAL_WINDOW_ABSENT")
     }
 
@@ -150,6 +205,7 @@ class NativeDeviceHarness : Closeable {
         val deadline = SystemClock.elapsedRealtime() + 35000
         awaitCredentialWindow()
         while (SystemClock.elapsedRealtime() < deadline) {
+            requireNativePending("PIN_LOOKUP")
             val root = instrumentation.uiAutomation.rootInActiveWindow
             if (root == null || root.packageName?.toString() !in systemPackages) {
                 SystemClock.sleep(100)
@@ -158,16 +214,20 @@ class NativeDeviceHarness : Closeable {
             val entry = find(root) { it.viewIdResourceName in pinIds }
             if (entry != null) {
                 check(entry.isVisibleToUser && entry.packageName?.toString() in systemPackages) { "PIN_ENTRY_NOT_SYSTEM" }
+                requireNativePending("BEFORE_PIN")
                 entry.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+                requireNativePending("BEFORE_PIN")
                 // Input only after observing the known foreground system credential field.
                 listOf(KeyEvent.KEYCODE_8, KeyEvent.KEYCODE_6, KeyEvent.KEYCODE_4, KeyEvent.KEYCODE_2, KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_9, KeyEvent.KEYCODE_ENTER).forEach(::press)
                 return
             }
             val alternative = find(root) { it.isVisibleToUser && it.isClickable && it.text?.toString() in setOf("Use PIN", "Use device PIN") }
+            requireNativePending("PIN_LOOKUP")
             alternative?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
             SystemClock.sleep(150)
         }
-        recordSystemResourceIds()
+        requireNativePending("PIN_TIMEOUT")
+        runCatching { recordSystemResourceIds("PIN_TIMEOUT") }
         error("SYSTEM_CREDENTIAL_UI_UNRECOGNIZED")
     }
 
@@ -180,9 +240,15 @@ class NativeDeviceHarness : Closeable {
     fun unlock(): NativeResult {
         val before = epoch()
         val pending = beginUnlock()
+        requireNativePending("BEFORE_UI")
         enterSyntheticCredential()
-        val result = pending.get(10, TimeUnit.SECONDS)
-        assertTrue("NATIVE_UNLOCK_FAILED", result.errorCode == null)
+        val result = try {
+            pending.get(10, TimeUnit.SECONDS)
+        } catch (_: java.util.concurrent.TimeoutException) {
+            runCatching { recordSystemResourceIds("RESULT_WAIT") }
+            error("NATIVE_RESULT_WAIT_TIMEOUT")
+        }
+        check(result.errorCode == null) { "NATIVE_RESULT_WAIT_${NativeUnlockObservation.safeCode(result.errorCode)}" }
         val returned = (result.value as? Map<*, *>)?.get("native_epoch") as? Int ?: error("NATIVE_EPOCH_MISSING")
         assertTrue("NATIVE_EPOCH_NOT_FRESH", returned != before)
         instrumentation.runOnMainSync {
@@ -248,5 +314,39 @@ fun nativeScenario(block: (NativeDeviceHarness) -> Unit) {
     } catch (failure: Throwable) {
         val code = failure.message?.takeIf { it.matches(Regex("[A-Z_]{3,80}")) } ?: "NATIVE_SCENARIO_FAILED"
         throw AssertionError(code)
+    }
+}
+
+/** Pure Result-order observer; contains no Android/auth actions or payload serialization. */
+class NativeUnlockObservation(
+    private val pending: CompletableFuture<NativeResult>,
+    private val record: (String, String) -> Unit
+) {
+    private val phase = java.util.concurrent.atomic.AtomicReference("NATIVE_REQUEST")
+    init {
+        pending.whenComplete { result, failure ->
+            val code = if (failure != null) "FUTURE_FAILED" else safeCode(result?.errorCode)
+            record(phase.get(), code)
+        }
+    }
+    fun requirePending(nextPhase: String) {
+        require(nextPhase in phases)
+        phase.set(nextPhase)
+        if (!pending.isDone) return
+        val result = try { pending.join() } catch (_: Exception) {
+            record(nextPhase, "FUTURE_FAILED")
+            error("NATIVE_${nextPhase}_FUTURE_FAILED")
+        }
+        val code = safeCode(result.errorCode)
+        record(nextPhase, code)
+        error("NATIVE_${nextPhase}_${if (result.errorCode == null) "EARLY_SUCCESS" else code}")
+    }
+    companion object {
+        private val phases = setOf("NATIVE_REQUEST", "BEFORE_UI", "WINDOW_WAIT", "PIN_LOOKUP", "BEFORE_PIN", "WINDOW_TIMEOUT", "PIN_TIMEOUT", "RESULT_WAIT")
+        fun safeCode(code: String?): String = when (code) {
+            null -> "SUCCESS"
+            "SECURITY_BOUNDARY", "AUTH_CANCELLED", "AUTH_UNAVAILABLE", "NOT_IMPLEMENTED" -> code
+            else -> "OTHER_ERROR"
+        }
     }
 }
