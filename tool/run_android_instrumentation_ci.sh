@@ -196,7 +196,7 @@ adb -s "$serial" shell locksettings set-pin 864209 >/dev/null
 export AS91_PHASE=native_suite
 start=$(date +%s)
 set +e
-(cd android && timeout --signal=TERM --kill-after=10s 540s ./gradlew --no-daemon --max-workers=2 --dependency-verification strict :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=io.github.natri3.assistant.security.DeviceSecurityTest,io.github.natri3.assistant.security.DomainCacheSecurityTest,io.github.natri3.assistant.security.NativeLifecycleVaultTest -Pandroid.testInstrumentationRunnerArguments.synthetic_emulator=true)
+(cd android && timeout --signal=TERM --kill-after=10s 540s ./gradlew --no-daemon --max-workers=2 --dependency-verification strict :app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.class=io.github.natri3.assistant.security.DeviceSecurityTest,io.github.natri3.assistant.security.DomainCacheSecurityTest,io.github.natri3.assistant.security.NativeLifecycleVaultTest -Pandroid.testInstrumentationRunnerArguments.synthetic_emulator=true)
 export AS91_GRADLE_STATUS=$?
 set -e
 export AS91_SUITE_SECONDS=$(( $(date +%s) - start ))
