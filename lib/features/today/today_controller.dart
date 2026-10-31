@@ -206,6 +206,8 @@ class TodayController extends ChangeNotifier {
   bool _active(int epoch) =>
       !_disposed && memory.unlocked && memory.nativeEpoch == epoch;
   bool _sameScope(int scope) => scope == _scope;
+  bool _ownsCommand(int epoch, int scope, int owner) =>
+      _active(epoch) && _sameScope(scope) && _busyOwner == owner;
   void _adopt(Dashboard next) {
     final old = dashboard;
     if (old != null &&
@@ -519,11 +521,12 @@ class TodayController extends ChangeNotifier {
         version,
         dashboard!.contextEpoch,
       );
-      if (!_active(epoch) || !_sameScope(scope)) return;
+      if (!_ownsCommand(epoch, scope, busyOwner)) return;
       await _pending();
-      await _send(action, false, epoch, scope);
+      if (!_ownsCommand(epoch, scope, busyOwner)) return;
+      await _send(action, false, epoch, scope, busyOwner);
     } catch (e) {
-      if (_active(epoch) && _sameScope(scope)) {
+      if (_ownsCommand(epoch, scope, busyOwner)) {
         if (!await _denial(e)) {
           detailPhase = TodayPhase.error;
           detailMessage = 'Не удалось надёжно сохранить команду. Отправка не подтверждена; проверьте сохранённые команды.';
@@ -534,39 +537,55 @@ class TodayController extends ChangeNotifier {
     }
   }
 
-  Future<void> _send(PendingAction p, bool retry, int epoch, int scope) async {
+  Future<void> _send(
+    PendingAction p,
+    bool retry,
+    int epoch,
+    int scope,
+    int owner,
+  ) async {
+    void checkAdmission() {
+      if (!_ownsCommand(epoch, scope, owner)) {
+        throw const ApiError(0, 'COMMAND_SUPERSEDED');
+      }
+    }
+
     MutationReceipt receipt;
     try {
+      checkAdmission();
       receipt = p.operation == ApiOperation.completeTask
           ? await repository.complete(
               p.resourceId,
               p.expectedVersion,
               p.actionKey,
+              checkAdmission: checkAdmission,
             )
           : await repository.snooze10(
               p.resourceId,
               p.expectedVersion,
               p.actionKey,
+              checkAdmission: checkAdmission,
             );
       p.match(receipt);
     } catch (e) {
-      if (!_active(epoch) || !_sameScope(scope)) return;
+      // Invalidation does not establish whether an already submitted request
+      // had an effect. Its original durable record remains unresolved.
+      if (!_ownsCommand(epoch, scope, owner)) return;
       if (await _denial(e)) return;
       final definite =
           e is ApiError && {400, 404, 409, 422, 429}.contains(e.status);
       if (definite && !retry) {
         await recovery!.reject(p, e.status, e.code);
         await _pending();
+        if (!_ownsCommand(epoch, scope, owner)) return;
         if (e.status == 409 || e.status == 404) {
           await refresh();
-          if (!_active(epoch) ||
-              !_sameScope(scope) ||
+          if (!_ownsCommand(epoch, scope, owner) ||
               phase == TodayPhase.paused) {
             return;
           }
           if (e.status == 409) await _open(p.resourceId, p.kind == 'reminder');
-          if (!_active(epoch) ||
-              !_sameScope(scope) ||
+          if (!_ownsCommand(epoch, scope, owner) ||
               phase == TodayPhase.paused) {
             return;
           }
@@ -588,36 +607,43 @@ class TodayController extends ChangeNotifier {
           await recovery!.unknown(p);
           await _pending();
         } catch (_) {}
+        if (!_ownsCommand(epoch, scope, owner)) return;
         detailPhase = TodayPhase.unknown;
         detailMessage = 'Исход команды неизвестен. Проверьте результат; повторной отправки не было.';
       }
       _emit();
       return;
     }
-    if (!_active(epoch) || !_sameScope(scope)) return;
+    if (!_ownsCommand(epoch, scope, owner)) return;
     try {
       await recovery!.confirm(p, receipt, lookup: false);
       await _pending();
     } catch (_) {
+      if (!_ownsCommand(epoch, scope, owner)) return;
       detailPhase = TodayPhase.unknown;
       detailMessage = 'Получен ответ команды; локальное подтверждение недоступно. Проверьте результат.';
       _emit();
       return;
     }
-    if (!_active(epoch) || !_sameScope(scope)) return;
-    await _afterConfirmed(p, epoch, scope);
+    if (!_ownsCommand(epoch, scope, owner)) return;
+    await _afterConfirmed(p, epoch, scope, owner);
   }
 
-  Future<void> _afterConfirmed(PendingAction p, int epoch, int scope) async {
+  Future<void> _afterConfirmed(
+    PendingAction p,
+    int epoch,
+    int scope,
+    int owner,
+  ) async {
     selectedTask = null;
     selectedReminder = null;
     detailPhase = TodayPhase.stale;
     detailMessage = 'Команда выполнена. Обновление данных…';
     _emit();
     await refresh();
-    if (!_active(epoch) || !_sameScope(scope)) return;
+    if (!_ownsCommand(epoch, scope, owner)) return;
     await _open(p.resourceId, p.kind == 'reminder');
-    if (!_active(epoch) || !_sameScope(scope)) return;
+    if (!_ownsCommand(epoch, scope, owner)) return;
     if (detailPhase != TodayPhase.fresh || !online) {
       selectedTask = null;
       selectedReminder = null;
@@ -636,22 +662,23 @@ class TodayController extends ChangeNotifier {
     _emit();
     try {
       final receipt = await repository.mutation(p.actionKey);
-      if (!_active(epoch) || !_sameScope(scope)) return;
+      if (!_ownsCommand(epoch, scope, busyOwner)) return;
       if (receipt != null) {
         p.match(receipt);
         await recovery!.confirm(p, receipt, lookup: true);
         await _pending();
-        if (!_active(epoch) || !_sameScope(scope)) return;
-        await _afterConfirmed(p, epoch, scope);
+        if (!_ownsCommand(epoch, scope, busyOwner)) return;
+        await _afterConfirmed(p, epoch, scope, busyOwner);
       } else {
         await recovery!.unknown(p);
         await _pending();
+        if (!_ownsCommand(epoch, scope, busyOwner)) return;
         _checkedAbsent.add(p.actionKey);
         detailPhase = TodayPhase.unknown;
         detailMessage = 'Квитанция не найдена. Это не доказывает отсутствие эффекта. Можно явно повторить исходную команду после проверки текущего объекта.';
       }
     } catch (e) {
-      if (_active(epoch) && _sameScope(scope) && !await _denial(e)) {
+      if (_ownsCommand(epoch, scope, busyOwner) && !await _denial(e)) {
         detailPhase = TodayPhase.unknown;
         detailMessage =
             'Проверка результата недоступна. Исходная команда сохранена.';
@@ -676,7 +703,7 @@ class TodayController extends ChangeNotifier {
       final dto = p.kind == 'task'
           ? await repository.task(p.resourceId)
           : await repository.reminder(p.resourceId);
-      if (!_active(epoch) || !_sameScope(scope)) return;
+      if (!_ownsCommand(epoch, scope, busyOwner)) return;
       final allowed = dto is TaskDto
           ? dto.canComplete
           : (dto as ReminderDto).canSnooze;
@@ -686,9 +713,9 @@ class TodayController extends ChangeNotifier {
         return;
       }
       _checkedAbsent.remove(p.actionKey);
-      await _send(ActionRecovery.retrySame(p), true, epoch, scope);
+      await _send(ActionRecovery.retrySame(p), true, epoch, scope, busyOwner);
     } catch (e) {
-      if (_active(epoch) && _sameScope(scope) && !await _denial(e)) {
+      if (_ownsCommand(epoch, scope, busyOwner) && !await _denial(e)) {
         detailPhase = TodayPhase.unknown;
         detailMessage = 'Исходная команда сохранена; повтор недоступен.';
       }

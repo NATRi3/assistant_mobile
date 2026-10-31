@@ -16,8 +16,18 @@ abstract interface class TodayRepository {
   Future<Dashboard> dashboard({String? cursor});
   Future<TaskDto> task(String id);
   Future<ReminderDto> reminder(String id);
-  Future<MutationReceipt> complete(String id, int version, String key);
-  Future<MutationReceipt> snooze10(String id, int version, String key);
+  Future<MutationReceipt> complete(
+    String id,
+    int version,
+    String key, {
+    required void Function() checkAdmission,
+  });
+  Future<MutationReceipt> snooze10(
+    String id,
+    int version,
+    String key, {
+    required void Function() checkAdmission,
+  });
   Future<MutationReceipt?> mutation(String key);
 }
 
@@ -157,25 +167,35 @@ class ApiTodayRepository implements TodayRepository {
         return dto;
       }, id: id);
   @override
-  Future<MutationReceipt> complete(String id, int version, String key) async =>
-      MutationReceipt.fromJson(
-        await api.call(
-          ApiOperation.completeTask,
-          resourceId: id,
-          actionKey: key,
-          body: {'expected_version': version},
-        ),
-      );
+  Future<MutationReceipt> complete(
+    String id,
+    int version,
+    String key, {
+    required void Function() checkAdmission,
+  }) async => MutationReceipt.fromJson(
+    (await api.callResult(
+      ApiOperation.completeTask,
+      resourceId: id,
+      actionKey: key,
+      body: {'expected_version': version},
+      checkAdmission: checkAdmission,
+    )).body,
+  );
   @override
-  Future<MutationReceipt> snooze10(String id, int version, String key) async =>
-      MutationReceipt.fromJson(
-        await api.call(
-          ApiOperation.snoozeReminder,
-          resourceId: id,
-          actionKey: key,
-          body: {'expected_version': version, 'delay_minutes': 10},
-        ),
-      );
+  Future<MutationReceipt> snooze10(
+    String id,
+    int version,
+    String key, {
+    required void Function() checkAdmission,
+  }) async => MutationReceipt.fromJson(
+    (await api.callResult(
+      ApiOperation.snoozeReminder,
+      resourceId: id,
+      actionKey: key,
+      body: {'expected_version': version, 'delay_minutes': 10},
+      checkAdmission: checkAdmission,
+    )).body,
+  );
   @override
   Future<MutationReceipt?> mutation(String key) async {
     try {
