@@ -114,7 +114,7 @@ class NativeDeviceHarness : Closeable {
 
     private val systemPackages = setOf("com.android.settings", "com.android.systemui")
     // These AOSP selectors are hypotheses until the first pinned-image feasibility run.
-    private val pinIds = setOf("com.android.settings:id/password_entry", "com.android.systemui:id/pinEntry")
+    private val pinIds = setOf("com.android.settings:id/password_entry", "com.android.systemui:id/pinEntry", "com.android.systemui:id/lockPassword")
     private fun find(root: AccessibilityNodeInfo, predicate: (AccessibilityNodeInfo) -> Boolean): AccessibilityNodeInfo? {
         val queue = java.util.ArrayDeque<AccessibilityNodeInfo>()
         queue.add(root)
