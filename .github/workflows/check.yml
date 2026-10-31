@@ -1,0 +1,59 @@
+name: Android foundation
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      FLUTTER_SUPPRESS_ANALYTICS: 'true'
+      DART_SUPPRESS_ANALYTICS: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verified official toolchains and frozen pub graph
+        run: bash tool/bootstrap_ci.sh
+      - name: Format, analyzer, design tokens and Dart tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/evidence
+          dart format --output=none --set-exit-if-changed lib test integration_test tool/check_tokens.dart
+          flutter analyze --no-pub
+          dart run tool/check_tokens.dart
+          flutter test --no-pub --machine > build/evidence/flutter-tests.jsonl
+      - name: Native tests and Android assembly with dependency verification
+        working-directory: android
+        run: ./gradlew --no-daemon --dependency-verification strict :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest
+      - name: Verify direct dependency origin and known runtime vulnerabilities
+        run: |
+          python3 tool/verify_dependency_pins.py > build/evidence/dependency-origins.json
+          python3 tool/scan_runtime_dependencies.py
+      - name: ARM64 development APK and receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --debug --target-platform android-arm64 --no-pub
+          python3 tool/build_receipt.py
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs build/app/outputs/flutter-apk/app-debug.apk > build/evidence/apk-signature.txt
+          "$ANDROID_HOME/cmdline-tools/pinned/bin/apkanalyzer" manifest print build/app/outputs/flutter-apk/app-debug.apk > build/evidence/manifest.xml
+          python3 tool/check_manifest.py build/evidence/manifest.xml
+      - name: Bounded development evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-foundation-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/evidence/
+            build/app/test-results/testDebugUnitTest/
+            build/app/outputs/flutter-apk/app-debug.apk

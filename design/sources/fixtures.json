@@ -1,0 +1,50 @@
+{
+  "synthetic": true,
+  "date": "2026-10-31",
+  "timezone": "UTC+03:00 (пример)",
+  "last_sync": "09:40",
+  "task": {
+    "id": "demo-task-1",
+    "title": "Подготовить список покупок",
+    "version": 3,
+    "state": "open"
+  },
+  "challenge": "DEMO · НЕ КОД ДОСТУПА",
+  "chat": {
+    "owner": "Что у меня запланировано?",
+    "assistant": "В примере две задачи. Ближайшее напоминание — в 10:00. Откройте «Сегодня», чтобы посмотреть детали."
+  },
+  "notification": {
+    "title": "Ассистент",
+    "body": "Пора проверить напоминание",
+    "opaque_id": "demo-opaque-1"
+  },
+  "widget": {
+    "generic": "Ассистент · Открыть",
+    "open_task_count": 2,
+    "nearest_reminder_time": "10:00"
+  },
+  "reminder_detail": {
+    "id": "demo-reminder-1",
+    "time": "10:00",
+    "snoozed_time": "10:10",
+    "version": 2,
+    "text": "Позвонить в мастерскую",
+    "projection": "detail-after-unlock-only"
+  },
+  "dashboard": {
+    "reminder_summary": {
+      "id": "demo-reminder-1",
+      "due_at": "2026-10-31T10:00:00+03:00",
+      "version": 2,
+      "source_warning": false
+    },
+    "reminder_card_label": "Ближайшее напоминание",
+    "reminder_action_label": "Открыть напоминание"
+  },
+  "device": {
+    "id": "00000000-0000-4000-8000-000000000083",
+    "synthetic": true,
+    "offline_logout_warning": "Телефон отключён здесь; серверный отзыв не подтверждён"
+  }
+}

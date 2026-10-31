@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+  <title>Ассистент · Тихий рабочий стол · дизайн-прототип</title>
+  <link rel="stylesheet" href="review.css">
+  <script src="review.js" defer></script>
+</head>
+<body>
+  <noscript><p class="noscript">Для кликабельного макета нужен JavaScript. <a href="../screens/D02-light.svg">Открыть статичный редактируемый SVG «Сегодня»</a>.</p></noscript>
+  <header class="review-header">
+    <a href="../README.md" class="brand">АС / Android</a>
+    <p>Тихий рабочий стол <span class="pill">A · review 0.1</span></p>
+    <p class="review-notice">Дизайн-прототип · синтетические данные · без сети, AI и реальных действий</p>
+  </header>
+  <main class="workbench">
+    <aside class="controls" aria-label="Инструменты проверки дизайна">
+      <p class="eyebrow">ПРОВЕРКА СЦЕНАРИЯ</p>
+      <h1>Меньше шума.<br>Дела на виду.</h1>
+      <p>Два раздела, ясные состояния и одно полезное напоминание. Никаких скрытых действий.</p>
+      <label for="screen">Экран</label><select id="screen"></select>
+      <label for="state">Состояние</label><select id="state"></select>
+      <label for="theme">Тема</label><select id="theme"><option value="light">Светлая</option><option value="dark">Тёмная</option></select>
+      <label for="scale">Размер текста</label><select id="scale"><option value="1">100%</option><option value="1.3">130%</option><option value="2">200%</option></select>
+      <label class="check"><input id="motion" type="checkbox" checked> Без анимации</label>
+      <button id="reset" type="button" class="secondary">Сбросить пример</button>
+      <p class="meta">Состояния выбираются вручную. «Отправить», привязка и команды меняют только память этой страницы.</p>
+      <a href="../handoff.md">Поведение и передача разработчику</a>
+      <a href="../screens/D02-light.svg">Редактируемый SVG «Сегодня»</a>
+    </aside>
+    <section class="device-area" aria-label="Область прототипа">
+      <div class="device" id="device">
+        <div class="demo-strip">МАКЕТ · ДАННЫЕ ПРИМЕРА</div>
+        <div class="statusbar" aria-hidden="true"><span>09:41</span><span>● · ▰</span></div>
+        <header class="appbar"><button id="back" class="icon-button" aria-label="Назад">←</button><span class="app-name">Ассистент</span><button id="settings" class="icon-button" aria-label="Настройки">☰</button></header>
+        <div id="content" class="content"></div>
+        <nav class="tabs" aria-label="Разделы"><button data-route="D02">Сегодня</button><button data-route="D03">Диалог</button></nav>
+      </div>
+      <p id="announcement" class="result" role="status" aria-live="polite">Выберите действие в макете.</p>
+    </section>
+    <aside class="annotations" aria-label="Заметки к экрану"><p class="eyebrow">ПОВЕДЕНИЕ</p><h2 id="screen-label"></h2><p id="annotation"></p><p class="meta">Редактируемые SVG фиксируют базовые кадры. HTML показывает ветви и переносы при крупном шрифте. Реальная Android-доступность проверяется на APK отдельно.</p><a href="../directions.html">Сравнить направления A / B</a></aside>
+  </main>
+  <dialog id="confirm"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-copy"></p><div class="stack"><button id="confirm-go" type="button">Продолжить в примере</button><button type="submit" class="secondary">Отмена</button></div></form></dialog>
+</body>
+</html>

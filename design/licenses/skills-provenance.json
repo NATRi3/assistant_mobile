@@ -1,0 +1,48 @@
+{
+  "checked_at": "2026-10-31T08:24:28.811994+00:00",
+  "repository": "wshobson/agents",
+  "commit": "7e2fb559cf4b824b27f1fec49fe88f7511066d26",
+  "upstream_license": "MIT",
+  "skills": {
+    "mobile-android-design": {
+      "directory": "/home/codex/.codex/skills/mobile-android-design",
+      "files": {
+        "SKILL.md": "0a209a1c45585ce0056548cc2f0fd352b7fde5980a3b5dd397a9daf5dff19fe7",
+        "references/compose-components.md": "22d9a47cc8ec4c4bbec36f15cb7a5eea33d5a0b5b6c3ba29378fc37197a8a8a0",
+        "references/material3-theming.md": "72ba4c1ef77fba5740b039b3f8b3676902967495141e3f40e0b800df3e85da7c",
+        "references/android-navigation.md": "6a28f9a113c4af16f9f8581d9d494ed7b278de8c6258cef58e3ecb822707d190",
+        "references/details.md": "854f692ebe2b6adbf42f1406d0e7e1f7bc895ee34baa4ceff1ef1afc9f2dd962"
+      }
+    },
+    "design-system-patterns": {
+      "directory": "/home/codex/.codex/skills/design-system-patterns",
+      "files": {
+        "SKILL.md": "618355f0e6c6ba8ca5d231035c9da18302fe6894aedce565743e9181b6c928ee",
+        "references/component-architecture.md": "84dc16ed581c1ad72e34b93ba84bcfa9223d30f9c42eb7e36654bbbe8daefc61",
+        "references/design-tokens.md": "44bd27e26f072a3facd6cd841140d403805106c9c5d5e39fc33bf6ffccf8af64",
+        "references/details.md": "1f1792e8b20c24c2be2acd46e7da85928578d108006594f3ae35d93f9108ff6d",
+        "references/theming-architecture.md": "24c9efec7c809a4d6797e6a11bc66ce08c5d708211caac14266ce5754c83cc75"
+      }
+    },
+    "visual-design-foundations": {
+      "directory": "/home/codex/.codex/skills/visual-design-foundations",
+      "files": {
+        "SKILL.md": "0c6970d14f5d5df55c63d1be995205d140489e2d0c39896657fabee6f6a5df84",
+        "references/spacing-iconography.md": "04835fad7ba356d9d10b46a9f6911a6b535095964a238f39f100b0dd1c4d90b5",
+        "references/color-systems.md": "9ba288fbead974f0b6424ca04acee68e6ede07be62c5121142084e6afa82f871",
+        "references/typography-systems.md": "93be8eeb9c2a5e26205f657ea13a34bb832ba686c0458ee3db2877e6b4b066fc"
+      }
+    },
+    "interaction-design": {
+      "directory": "/home/codex/.codex/skills/interaction-design",
+      "files": {
+        "SKILL.md": "87f2765ed1deeef3f1c06f9e4338ff103c391c6c4adcdffc885f3516b7c34ff2",
+        "references/animation-libraries.md": "92da251d881a6a0647f09b83c9cf8cbdfb5d408d54e1098097bb0eda336e6d0f",
+        "references/scroll-animations.md": "34f32ef74c4f44bf57a721f95cd523b63dd1d02711f16ccb8472d1d7a4f78a35",
+        "references/microinteraction-patterns.md": "c276b03468bacacf7a7d8d95c70114d9724854ac2e084ad63f0b6e1ef00a948a"
+      }
+    }
+  },
+  "license_copy": "/home/codex/.codex/skills/wshobson-agents-MIT-LICENSE.txt",
+  "license_sha256": "f89abb55d9f073f38f1703e4518f0613c788c6174be7f13b8dfe48a1c076c746"
+}

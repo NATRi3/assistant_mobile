@@ -1,0 +1,117 @@
+{
+  "createPairing": {
+    "method": "POST",
+    "path": "/mobile/v1/pairings",
+    "authenticated": false
+  },
+  "getPairing": {
+    "method": "GET",
+    "path": "/mobile/v1/pairings/{pairing_id}",
+    "authenticated": false
+  },
+  "completePairing": {
+    "method": "POST",
+    "path": "/mobile/v1/pairings/{pairing_id}/complete",
+    "authenticated": false
+  },
+  "refreshSession": {
+    "method": "POST",
+    "path": "/mobile/v1/sessions/refresh",
+    "authenticated": false
+  },
+  "getSelfDevice": {
+    "method": "GET",
+    "path": "/mobile/v1/devices/self",
+    "authenticated": true
+  },
+  "revokeSelfDevice": {
+    "method": "DELETE",
+    "path": "/mobile/v1/devices/self",
+    "authenticated": true
+  },
+  "getDashboard": {
+    "method": "GET",
+    "path": "/mobile/v1/dashboard",
+    "authenticated": true
+  },
+  "getTask": {
+    "method": "GET",
+    "path": "/mobile/v1/tasks/{task_id}",
+    "authenticated": true
+  },
+  "completeTask": {
+    "method": "POST",
+    "path": "/mobile/v1/tasks/{task_id}/complete",
+    "authenticated": true
+  },
+  "getReminder": {
+    "method": "GET",
+    "path": "/mobile/v1/reminders/{reminder_id}",
+    "authenticated": true
+  },
+  "snoozeReminder": {
+    "method": "POST",
+    "path": "/mobile/v1/reminders/{reminder_id}/snooze",
+    "authenticated": true
+  },
+  "getMutation": {
+    "method": "GET",
+    "path": "/mobile/v1/mutations/{action_key}",
+    "authenticated": true
+  },
+  "submitChat": {
+    "method": "POST",
+    "path": "/mobile/v1/chat/messages",
+    "authenticated": true
+  },
+  "listChat": {
+    "method": "GET",
+    "path": "/mobile/v1/chat/messages",
+    "authenticated": true
+  },
+  "getChat": {
+    "method": "GET",
+    "path": "/mobile/v1/chat/messages/{message_id}",
+    "authenticated": true
+  },
+  "cancelChat": {
+    "method": "POST",
+    "path": "/mobile/v1/chat/messages/{message_id}/cancel",
+    "authenticated": true
+  },
+  "getPreferences": {
+    "method": "GET",
+    "path": "/mobile/v1/preferences",
+    "authenticated": true
+  },
+  "updatePreferences": {
+    "method": "PATCH",
+    "path": "/mobile/v1/preferences",
+    "authenticated": true
+  },
+  "updatePushRegistration": {
+    "method": "PUT",
+    "path": "/mobile/v1/devices/self/push-registration",
+    "authenticated": true
+  },
+  "deletePushRegistration": {
+    "method": "DELETE",
+    "path": "/mobile/v1/devices/self/push-registration",
+    "authenticated": true
+  },
+  "getNotification": {
+    "method": "GET",
+    "path": "/mobile/v1/notifications/{notification_id}",
+    "authenticated": true
+  },
+  "recordNotificationReceipt": {
+    "method": "POST",
+    "path": "/mobile/v1/notification-receipts",
+    "authenticated": true
+  },
+  "getChatByClientId": {
+    "method": "GET",
+    "path": "/mobile/v1/chat/messages/by-client-id/{client_message_id}",
+    "authenticated": true
+  }
+}

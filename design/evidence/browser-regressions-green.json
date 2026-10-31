@@ -1,0 +1,543 @@
+{
+  "checked_at": "2026-10-31T09:34:44.943750+00:00",
+  "role": "Designer targeted regression; not independent QA/G5",
+  "phase": "green",
+  "result": "PASS",
+  "chromium": "156.0.8078.4",
+  "checks": [
+    {
+      "check": "Permission cancel/Escape leaves visual and persisted demo state unchecked; confirm still works",
+      "result": "PASS"
+    },
+    {
+      "check": "Navigation glyphs fit clickable bounds without overlap at 100/200%, both themes, 360/412/480px",
+      "result": "PASS"
+    }
+  ],
+  "layout_cases": [
+    {
+      "width": 360,
+      "scale": "1",
+      "theme": "light",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 180.5,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 72.75,
+            "right": 148.75,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 188.5,
+            "right": 319,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 220.25,
+            "right": 287.25,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 360,
+      "scale": "1",
+      "theme": "dark",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 180.5,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 72.75,
+            "right": 148.75,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 188.5,
+            "right": 319,
+            "top": 1204.765625,
+            "bottom": 1253.15625,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 220.25,
+            "right": 287.25,
+            "top": 1218.765625,
+            "bottom": 1237.765625
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 360,
+      "scale": "2",
+      "theme": "light",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 319,
+            "top": 2261.609375,
+            "bottom": 2332.40625,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 103.5,
+            "right": 256.5,
+            "top": 2277.609375,
+            "bottom": 2315.609375
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 41,
+            "right": 319,
+            "top": 2340.40625,
+            "bottom": 2411.203125,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 112.5,
+            "right": 247.5,
+            "top": 2356.40625,
+            "bottom": 2394.40625
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 360,
+      "scale": "2",
+      "theme": "dark",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 319,
+            "top": 2150.609375,
+            "bottom": 2221.40625,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 103.5,
+            "right": 256.5,
+            "top": 2166.609375,
+            "bottom": 2204.609375
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 41,
+            "right": 319,
+            "top": 2229.40625,
+            "bottom": 2300.203125,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 112.5,
+            "right": 247.5,
+            "top": 2245.40625,
+            "bottom": 2283.40625
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 412,
+      "scale": "1",
+      "theme": "light",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 206.5,
+            "top": 1031.59375,
+            "bottom": 1079.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 85.75,
+            "right": 161.75,
+            "top": 1045.59375,
+            "bottom": 1064.59375
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 214.5,
+            "right": 371,
+            "top": 1031.59375,
+            "bottom": 1079.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 259.25,
+            "right": 326.25,
+            "top": 1045.59375,
+            "bottom": 1064.59375
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 412,
+      "scale": "1",
+      "theme": "dark",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 206.5,
+            "top": 1142.59375,
+            "bottom": 1190.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 85.75,
+            "right": 161.75,
+            "top": 1156.59375,
+            "bottom": 1175.59375
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 214.5,
+            "right": 371,
+            "top": 1142.59375,
+            "bottom": 1190.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 259.25,
+            "right": 326.25,
+            "top": 1156.59375,
+            "bottom": 1175.59375
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 412,
+      "scale": "2",
+      "theme": "light",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 211,
+            "top": 1908.125,
+            "bottom": 1978.921875,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 49.5,
+            "right": 202.5,
+            "top": 1924.125,
+            "bottom": 1962.125
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 219,
+            "right": 371,
+            "top": 1908.125,
+            "bottom": 1978.921875,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 227.5,
+            "right": 362.5,
+            "top": 1924.125,
+            "bottom": 1962.125
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 412,
+      "scale": "2",
+      "theme": "dark",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 41,
+            "right": 211,
+            "top": 1835.125,
+            "bottom": 1905.921875,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 49.5,
+            "right": 202.5,
+            "top": 1851.125,
+            "bottom": 1889.125
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 219,
+            "right": 371,
+            "top": 1835.125,
+            "bottom": 1905.921875,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 227.5,
+            "right": 362.5,
+            "top": 1851.125,
+            "bottom": 1889.125
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 480,
+      "scale": "1",
+      "theme": "light",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 59,
+            "right": 240.5,
+            "top": 1069.59375,
+            "bottom": 1117.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 111.75,
+            "right": 187.75,
+            "top": 1083.59375,
+            "bottom": 1102.59375
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 248.5,
+            "right": 421,
+            "top": 1069.59375,
+            "bottom": 1117.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 301.25,
+            "right": 368.25,
+            "top": 1083.59375,
+            "bottom": 1102.59375
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 480,
+      "scale": "1",
+      "theme": "dark",
+      "font_size": "16px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 59,
+            "right": 240.5,
+            "top": 1142.59375,
+            "bottom": 1190.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 111.75,
+            "right": 187.75,
+            "top": 1156.59375,
+            "bottom": 1175.59375
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 248.5,
+            "right": 421,
+            "top": 1142.59375,
+            "bottom": 1190.984375,
+            "height": 48.390625
+          },
+          "glyph": {
+            "left": 301.25,
+            "right": 368.25,
+            "top": 1156.59375,
+            "bottom": 1175.59375
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 480,
+      "scale": "2",
+      "theme": "light",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 59,
+            "right": 245,
+            "top": 1827.328125,
+            "bottom": 1898.125,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 75.5,
+            "right": 228.5,
+            "top": 1843.328125,
+            "bottom": 1881.328125
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 253,
+            "right": 421,
+            "top": 1827.328125,
+            "bottom": 1898.125,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 269.5,
+            "right": 404.5,
+            "top": 1843.328125,
+            "bottom": 1881.328125
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    },
+    {
+      "width": 480,
+      "scale": "2",
+      "theme": "dark",
+      "font_size": "32px",
+      "bounds": [
+        {
+          "label": "Сегодня",
+          "button": {
+            "left": 59,
+            "right": 245,
+            "top": 1790.328125,
+            "bottom": 1861.125,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 75.5,
+            "right": 228.5,
+            "top": 1806.328125,
+            "bottom": 1844.328125
+          },
+          "fits": true
+        },
+        {
+          "label": "Диалог",
+          "button": {
+            "left": 253,
+            "right": 421,
+            "top": 1790.328125,
+            "bottom": 1861.125,
+            "height": 70.796875
+          },
+          "glyph": {
+            "left": 269.5,
+            "right": 404.5,
+            "top": 1806.328125,
+            "bottom": 1844.328125
+          },
+          "fits": true
+        }
+      ],
+      "overlap": false
+    }
+  ],
+  "source_sha256": {
+    "preview/review.js": "e1e1eef4b2f94ffc36d153e208ce465e4cf1cee6e37cf186b155fca237fb0933",
+    "preview/layout.css": "15171b9c5a216e819419fa5cd61fe91c698b830598505fcb35bdbbeada3b8a6c",
+    "preview/review.css": "fbcacc87550a71a2b49b90a42d849ae59d366bbd279a8e0c2c7727adf9a4d742"
+  },
+  "source_unchanged_during_run": true,
+  "page_errors": [],
+  "external_requests_blocked": []
+}

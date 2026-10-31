@@ -1,0 +1,233 @@
+{
+  "version": "0.1.0-review",
+  "screens": {
+    "D01": {
+      "name": "Подключение",
+      "states": [
+        "default",
+        "loading",
+        "expired",
+        "denied",
+        "error",
+        "revoked",
+        "logout-unconfirmed"
+      ],
+      "actions": [
+        "pair-demo",
+        "cancel"
+      ]
+    },
+    "D02": {
+      "name": "Сегодня",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "offline",
+        "stale",
+        "error",
+        "revoked"
+      ],
+      "actions": [
+        "open-task",
+        "open-reminder",
+        "refresh"
+      ]
+    },
+    "D03": {
+      "name": "Диалог",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "offline",
+        "error",
+        "unknown",
+        "revoked"
+      ],
+      "actions": [
+        "send-demo",
+        "reconcile",
+        "cancel"
+      ]
+    },
+    "D04": {
+      "name": "Задача",
+      "states": [
+        "default",
+        "loading",
+        "offline",
+        "stale",
+        "error",
+        "unknown",
+        "done",
+        "deleted",
+        "revoked"
+      ],
+      "actions": [
+        "complete",
+        "reconcile",
+        "refresh"
+      ]
+    },
+    "D05": {
+      "name": "Напоминание",
+      "states": [
+        "default",
+        "loading",
+        "offline",
+        "stale",
+        "error",
+        "unknown",
+        "snoozed",
+        "expired",
+        "deleted",
+        "revoked"
+      ],
+      "actions": [
+        "snooze10",
+        "reconcile",
+        "refresh"
+      ]
+    },
+    "D06": {
+      "name": "Связь и уведомления",
+      "states": [
+        "default",
+        "loading",
+        "offline",
+        "stale",
+        "error",
+        "denied",
+        "channel-disabled",
+        "no-gms",
+        "revoked"
+      ],
+      "actions": [
+        "notification-settings",
+        "refresh"
+      ]
+    },
+    "D07": {
+      "name": "Настройки",
+      "states": [
+        "default",
+        "loading",
+        "offline",
+        "error",
+        "denied",
+        "channel-disabled",
+        "no-gms",
+        "revoked"
+      ],
+      "actions": [
+        "notification-optin",
+        "widget-optin",
+        "route-choice"
+      ]
+    },
+    "D08": {
+      "name": "Этот телефон",
+      "states": [
+        "default",
+        "loading",
+        "offline",
+        "error",
+        "revoked"
+      ],
+      "actions": [
+        "logout",
+        "revoke-self",
+        "cancel"
+      ]
+    },
+    "D09": {
+      "name": "Push и виджет",
+      "states": [
+        "default",
+        "offline",
+        "stale",
+        "denied",
+        "revoked"
+      ],
+      "actions": [
+        "push-open",
+        "push-snooze",
+        "widget-open",
+        "widget-optin"
+      ]
+    }
+  },
+  "flows": [
+    {
+      "id": "F01",
+      "steps": [
+        "D01:pair-demo",
+        "D02:default",
+        "D04:complete",
+        "D04:done"
+      ]
+    },
+    {
+      "id": "F02",
+      "steps": [
+        "D09:push-snooze",
+        "unlock-demo",
+        "fresh-fetch-demo",
+        "D05:default",
+        "D05:snooze10",
+        "D05:snoozed"
+      ]
+    },
+    {
+      "id": "F03",
+      "steps": [
+        "D03:send-demo",
+        "D03:loading",
+        "D03:default"
+      ]
+    },
+    {
+      "id": "F04",
+      "steps": [
+        "D05:offline",
+        "mutation-blocked",
+        "refresh",
+        "D05:default"
+      ]
+    },
+    {
+      "id": "F05",
+      "steps": [
+        "D08:logout",
+        "local-projection-cleared",
+        "D01:default",
+        "D09:revoked"
+      ]
+    },
+    {
+      "id": "F06",
+      "steps": [
+        "D05:unknown",
+        "reconcile",
+        "D05:snoozed"
+      ]
+    },
+    {
+      "id": "F07",
+      "steps": [
+        "D08:offline",
+        "D08:logout",
+        "local-projection-cleared",
+        "D01:logout-unconfirmed",
+        "owner-telegram-revoke-instruction"
+      ]
+    }
+  ],
+  "futureOnly": [
+    "candidate CRUD",
+    "notification inbox/read history",
+    "multi-device management",
+    "private push/widget previews"
+  ]
+}
